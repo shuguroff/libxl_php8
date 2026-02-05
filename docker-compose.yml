@@ -1,0 +1,44 @@
+# docker-compose для тестирования php_excel на разных версиях PHP
+#
+# Использование:
+#   docker compose build              # собрать все образы
+#   docker compose up php74           # тестирование на PHP 7.4
+#   docker compose up php80           # тестирование на PHP 8.0
+#   docker compose up php81           # тестирование на PHP 8.1
+#   docker compose up php82           # тестирование на PHP 8.2
+#   docker compose up php83           # тестирование на PHP 8.3
+#   docker compose up                 # тестирование на всех версиях
+#
+# ВАЖНО: Перед сборкой необходимо скачать LibXL с https://www.libxl.com/
+# и распаковать в директорию libxl/ в корне проекта.
+
+services:
+  php74:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "7.4"
+
+  php80:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.0"
+
+  php81:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.1"
+
+  php82:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.2"
+
+  php83:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.3"

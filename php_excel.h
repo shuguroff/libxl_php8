@@ -1,0 +1,79 @@
+/*
+  +----------------------------------------------------------------------+
+  | PHP Version 5                                                        |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 1997-2014 The PHP Group                                |
+  +----------------------------------------------------------------------+
+  | This source file is subject to version 3.01 of the PHP license,      |
+  | that is bundled with this package in the file LICENSE, and is        |
+  | available through the world-wide-web at the following url:           |
+  | http://www.php.net/license/3_01.txt                                  |
+  | If you did not receive a copy of the PHP license and are unable to   |
+  | obtain it through the world-wide-web, please send a note to          |
+  | license@php.net so we can mail you a copy immediately.               |
+  +----------------------------------------------------------------------+
+  | Author: Ilia Alshanetsky <ilia@ilia.ws>                              |
+  +----------------------------------------------------------------------+
+*/
+
+#ifndef PHP_EXCEL_H
+#define PHP_EXCEL_H 1
+
+extern zend_module_entry excel_module_entry;
+#define phpext_excel_ptr &excel_module_entry
+
+ZEND_BEGIN_MODULE_GLOBALS(excel)
+	char *ini_license_name;
+	char *ini_license_key;
+	int ini_skip_empty;
+ZEND_END_MODULE_GLOBALS(excel)
+
+
+#ifdef PHP_WIN32
+#define PHP_EXCEL_API __declspec(dllexport)
+#else
+#define PHP_EXCEL_API
+#endif
+
+#ifdef ZTS
+#include "TSRM.h"
+#endif
+
+# define PHP_EXCEL_ERROR_HANDLING() \
+	zend_error_handling error_handling; \
+	zend_replace_error_handling(EH_THROW, NULL, &error_handling);
+# define PHP_EXCEL_RESTORE_ERRORS() zend_restore_error_handling(&error_handling);
+
+#ifndef Z_SET_ISREF_P
+# define Z_SET_ISREF_P(pz)				(pz)->is_ref = 1
+# define Z_SET_ISREF_PP(ppz)			Z_SET_ISREF_P(*(ppz))
+# define Z_SET_ISREF(z)				Z_SET_ISREF_P(&(z))
+#endif
+
+#ifndef Z_SET_REFCOUNT_P
+# define Z_SET_REFCOUNT_P(pz, rc)      (pz)->refcount = rc
+# define Z_SET_REFCOUNT_PP(ppz, rc)    Z_SET_REFCOUNT_P(*(ppz), rc)
+#endif
+
+/* PHP 8 compatibility */
+#if PHP_MAJOR_VERSION >= 8
+# ifndef ZEND_BOOL_T
+#  define ZEND_BOOL_T
+typedef bool zend_bool;
+# endif
+#endif
+
+#ifndef PHP_FE_END
+# define PHP_FE_END {NULL, NULL, NULL}
+#endif
+
+#endif	/* PHP_EXCEL_H */
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */

@@ -1286,7 +1286,7 @@ EXCEL_METHOD(Book, __construct)
 	size_t name_len = 0, key_len = 0;
 	zend_bool new_excel = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|ssb", &name, &name_len, &key, &key_len, &new_excel) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s!s!b", &name, &name_len, &key, &key_len, &new_excel) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -2728,12 +2728,13 @@ EXCEL_METHOD(Sheet, insertRow)
 		RETURN_BOOL(xlSheetInsertRowAndKeepRangesA (sheet, r, c));
 #endif
 	}
-#else
-# if LIBXL_VERSION >= 0x03080301
-	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(InsertRow)
-# else
+#elif LIBXL_VERSION >= 0x03080600
+	/* LibXL 3.8.6+ removed updateNamedRanges parameter, API is 3 args again */
 	PHP_EXCEL_SHEET_GET_BOOL_STATE(InsertRow)
-# endif
+#elif LIBXL_VERSION >= 0x03080301
+	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(InsertRow)
+#else
+	PHP_EXCEL_SHEET_GET_BOOL_STATE(InsertRow)
 #endif
 }
 /* }}} */
@@ -2760,12 +2761,13 @@ EXCEL_METHOD(Sheet, insertCol)
 		RETURN_BOOL(xlSheetInsertColAndKeepRangesA (sheet, r, c));
 #endif
 	}
-#else
-# if LIBXL_VERSION >= 0x03080301
-	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(InsertCol)
-# else
+#elif LIBXL_VERSION >= 0x03080600
+	/* LibXL 3.8.6+ removed updateNamedRanges parameter, API is 3 args again */
 	PHP_EXCEL_SHEET_GET_BOOL_STATE(InsertCol)
-# endif
+#elif LIBXL_VERSION >= 0x03080301
+	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(InsertCol)
+#else
+	PHP_EXCEL_SHEET_GET_BOOL_STATE(InsertCol)
 #endif
 }
 /* }}} */
@@ -2792,12 +2794,13 @@ EXCEL_METHOD(Sheet, removeRow)
 		RETURN_BOOL(xlSheetRemoveRowAndKeepRangesA (sheet, r, c));
 #endif
 	}
-#else
-# if LIBXL_VERSION >= 0x03080301
-	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(RemoveRow)
-# else
+#elif LIBXL_VERSION >= 0x03080600
+	/* LibXL 3.8.6+ removed updateNamedRanges parameter, API is 3 args again */
 	PHP_EXCEL_SHEET_GET_BOOL_STATE(RemoveRow)
-# endif
+#elif LIBXL_VERSION >= 0x03080301
+	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(RemoveRow)
+#else
+	PHP_EXCEL_SHEET_GET_BOOL_STATE(RemoveRow)
 #endif
 }
 /* }}} */
@@ -2824,12 +2827,13 @@ EXCEL_METHOD(Sheet, removeCol)
 		RETURN_BOOL(xlSheetRemoveColAndKeepRangesA (sheet, r, c));
 #endif
 	}
-#else
-# if LIBXL_VERSION >= 0x03080301
-	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(RemoveCol)
-# else
+#elif LIBXL_VERSION >= 0x03080600
+	/* LibXL 3.8.6+ removed updateNamedRanges parameter, API is 3 args again */
 	PHP_EXCEL_SHEET_GET_BOOL_STATE(RemoveCol)
-# endif
+#elif LIBXL_VERSION >= 0x03080301
+	PHP_EXCEL_SHEET_GET_BOOL_STATE_3831(RemoveCol)
+#else
+	PHP_EXCEL_SHEET_GET_BOOL_STATE(RemoveCol)
 #endif
 }
 /* }}} */
@@ -5496,7 +5500,7 @@ EXCEL_METHOD(Sheet, addDataValidation)
 	SheetHandle sheet;
 
 	zend_long type, op, row_first, row_last, col_first, col_last;
-	zend_string *val_1, *val_2;
+	zend_string *val_1 = NULL, *val_2 = NULL;
 	zend_bool allow_blank = 1, hide_dropdown=0, show_inputmessage = 1, show_errormessage = 1;
 	zend_string *prompt_title = zend_string_init("", sizeof("")-1, 0), *prompt = zend_string_init("", sizeof("")-1, 0);
 	zend_string *error_title = zend_string_init("", sizeof("")-1, 0), *error = zend_string_init("", sizeof("")-1, 0);
@@ -5513,7 +5517,7 @@ EXCEL_METHOD(Sheet, addDataValidation)
 		RETURN_FALSE;
 	}
 
-	if ((op == VALIDATION_OP_BETWEEN || op == VALIDATION_OP_NOTBETWEEN) && ZEND_NUM_ARGS() < 8) {
+	if ((op == VALIDATION_OP_BETWEEN || op == VALIDATION_OP_NOTBETWEEN) && (!val_2 || ZSTR_LEN(val_2) < 1)) {
 		php_error_docref(NULL, E_WARNING, "The second value can not be null when used with (not) between operator.");
 		RETURN_FALSE;
 	}
@@ -5521,7 +5525,7 @@ EXCEL_METHOD(Sheet, addDataValidation)
 	SHEET_FROM_OBJECT(sheet, object);
 
 	xlSheetAddDataValidationEx(sheet, type, op, row_first, row_last, col_first, col_last, ZSTR_VAL(val_1), \
-			ZSTR_VAL(val_2), allow_blank, hide_dropdown, show_inputmessage, show_errormessage, \
+			val_2 ? ZSTR_VAL(val_2) : "", allow_blank, hide_dropdown, show_inputmessage, show_errormessage, \
 			ZSTR_VAL(prompt_title), ZSTR_VAL(prompt), ZSTR_VAL(error_title), ZSTR_VAL(error), error_style);
 
 	RETURN_TRUE;
@@ -5537,11 +5541,12 @@ EXCEL_METHOD(Sheet, addDataValidationDouble)
 	SheetHandle sheet;
 
 	zend_long type, op, row_first, row_last, col_first, col_last;
-	double val_1, val_2;
+	double val_1 = 0.0, val_2 = 0.0;
 	zend_bool allow_blank = 1, hide_dropdown=0, show_inputmessage = 1, show_errormessage = 1;
 	zend_string *prompt_title = zend_string_init("", sizeof("")-1, 0), *prompt = zend_string_init("", sizeof("")-1, 0);
 	zend_string *error_title = zend_string_init("", sizeof("")-1, 0), *error = zend_string_init("", sizeof("")-1, 0);
 	zend_long error_style = 1;
+	zend_bool val_2_provided = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lllllld|dbbbbSSSSl", &type, &op, &row_first, &row_last, \
 			&col_first, &col_last, &val_1, &val_2, &allow_blank, &hide_dropdown, &show_inputmessage, \
@@ -5549,7 +5554,9 @@ EXCEL_METHOD(Sheet, addDataValidationDouble)
 		RETURN_FALSE;
 	}
 
-	if ((op == VALIDATION_OP_BETWEEN || op == VALIDATION_OP_NOTBETWEEN) && ZEND_NUM_ARGS() < 8) {
+	val_2_provided = (ZEND_NUM_ARGS() >= 8);
+
+	if ((op == VALIDATION_OP_BETWEEN || op == VALIDATION_OP_NOTBETWEEN) && !val_2_provided) {
 		php_error_docref(NULL, E_WARNING, "The second value can not be null when used with (not) between operator.");
 		RETURN_FALSE;
 	}

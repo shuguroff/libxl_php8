@@ -12,7 +12,7 @@ var_dump(
     $sheet->splitInfo(),
     $sheet->splitSheet(5, 2),
     $sheet->splitInfo(),
-    $sheet->splitSheet(null, null),
+    $sheet->splitSheet(0, 0),
     $sheet->splitInfo()
 );
 

@@ -10,7 +10,7 @@ date.timezone=America/Toronto
 
 	try {
 		$format = new ExcelFont();
-	} catch (Exception $e) {
+	} catch (Throwable $e) {
 		var_dump($e->getMessage());
 	}
 
@@ -21,7 +21,7 @@ date.timezone=America/Toronto
 	}
 	echo "OK\n"
 ?>
---EXPECT--
-string(61) "ExcelFont::__construct() expects exactly 1 parameter, 0 given"
-string(92) "Argument 1 passed to ExcelFont::__construct() must be an instance of ExcelBook, string given"
+--EXPECTF--
+string(%d) "ExcelFont::__construct() expects exactly 1 %s, 0 given"
+string(%d) "%sExcelBook, string given"
 OK

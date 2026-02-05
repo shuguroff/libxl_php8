@@ -10,7 +10,7 @@ date.timezone=America/Toronto
 
 	try {
 		$format = new ExcelFormat();
-	} catch (Exception $e) {
+	} catch (Throwable $e) {
 		var_dump($e->getMessage());
 	}
 
@@ -22,7 +22,7 @@ date.timezone=America/Toronto
 
 	echo "OK\n";
 ?>
---EXPECT--
-string(63) "ExcelFormat::__construct() expects exactly 1 parameter, 0 given"
-string(94) "Argument 1 passed to ExcelFormat::__construct() must be an instance of ExcelBook, string given"
+--EXPECTF--
+string(%d) "ExcelFormat::__construct() expects exactly 1 %s, 0 given"
+string(%d) "%sExcelBook, string given"
 OK

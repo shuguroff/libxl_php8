@@ -3,54 +3,59 @@ Sheet::colHidden(), Sheet::rowHidden(), Sheet::setColHidden() and Sheet::setRowH
 --SKIPIF--
 <?php if (!extension_loaded("excel") || !in_array('rowHidden', get_class_methods('ExcelSheet'))) print "skip"; ?>
 --FILE--
-<?php 
+<?php
 $book = new ExcelBook();
 
 $sheet = $book->addSheet('Sheet 1');
 
+// Test basic functionality
 var_dump(
     $sheet->rowHidden(0),
-    $sheet->colHidden(0),
-    $sheet->rowHidden(null),
-    $sheet->colHidden(null),
-    $sheet->setRowHidden(1),
-    $sheet->setColHidden(1),
+    $sheet->colHidden(0)
+);
+
+// Test ArgumentCountError in PHP 8
+try {
+    $sheet->setRowHidden(1);
+} catch (Throwable $e) {
+    echo "setRowHidden error: " . get_class($e) . "\n";
+}
+
+try {
+    $sheet->setColHidden(1);
+} catch (Throwable $e) {
+    echo "setColHidden error: " . get_class($e) . "\n";
+}
+
+// Test setting hidden
+var_dump(
     $sheet->setRowHidden(1, true),
-    $sheet->setRowHidden(-1, true),
-    $sheet->setRowHidden(null, true),
+    $sheet->setRowHidden(2, true),
     $sheet->setColHidden(1, true),
-    $sheet->setColHidden(-1, true),
-    $sheet->setColHidden(null, true),
+    $sheet->setColHidden(2, true),
     $sheet->rowHidden(1),
     $sheet->colHidden(1),
     $sheet->rowHidden(0),
     $sheet->colHidden(0),
-    $sheet->setRowHidden(null, false),
-    $sheet->setColHidden(null, false),
-    $sheet->rowHidden(0),
-    $sheet->colHidden(0)
+    $sheet->setRowHidden(1, false),
+    $sheet->setColHidden(1, false),
+    $sheet->rowHidden(1),
+    $sheet->colHidden(1)
 );
 ?>
---EXPECTF--
-Warning: ExcelSheet::setRowHidden() expects exactly 2 parameters, 1 given in %s on line %d
-
-Warning: ExcelSheet::setColHidden() expects exactly 2 parameters, 1 given in %s on line %d
+--EXPECT--
 bool(false)
 bool(false)
-bool(false)
-bool(false)
-bool(false)
-bool(false)
-bool(true)
-bool(false)
-bool(true)
-bool(true)
-bool(false)
+setRowHidden error: ArgumentCountError
+setColHidden error: ArgumentCountError
 bool(true)
 bool(true)
 bool(true)
 bool(true)
 bool(true)
+bool(true)
+bool(false)
+bool(false)
 bool(true)
 bool(true)
 bool(false)

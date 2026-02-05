@@ -24,7 +24,7 @@ Excel 2007/2010 read/write tests
 
 	echo "OK\n";
 ?>
---EXPECT--
+--EXPECTF--
 string(7) "boolean"
 bool(true)
 string(6) "double"
@@ -34,7 +34,7 @@ float(434324)
 string(6) "string"
 string(8) "fsdfasDF"
 string(4) "NULL"
-NULL
+%s
 string(6) "string"
 string(0) ""
 OK

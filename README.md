@@ -1,4 +1,4 @@
-# php_excel - PHP Extension for LibXL
+# libxl_php8 - PHP Extension for LibXL
 
 PHP extension for reading and writing Excel files using the [LibXL](http://www.libxl.com/) library.
 
@@ -6,21 +6,27 @@ PHP extension for reading and writing Excel files using the [LibXL](http://www.l
 
 This is a modernized fork with **full PHP 8.x support** and compatibility with **LibXL 5.x**.
 
+**Minimum requirement: PHP 8.2.** For older PHP versions use the repositories of the previous authors (see below).
+
 ### Changes in This Fork
 
-- **PHP 8.0+ Compatibility:**
+- **PHP 8.x Compatibility:**
   - Added `zend_bool` typedef for PHP 8 (uses native `bool`)
   - Replaced deprecated `z/` specifier in `zend_parse_parameters` with `z` + `ZVAL_DEREF`
   - Fixed object memory allocation using `zend_object_alloc()` (PHP 7.3+)
   - Replaced deprecated `zval_dtor()` with `zval_ptr_dtor()`
   - Added `PHP_FE_END` macro for function entry terminators
+  - Switched from `E_WARNING` to `ExcelException`
+  - Added XLSX format checks for XLSX-only features
+  - Memory safety fixes (writeError NULL check, ZVAL_UNDEF)
+  - Named constants for formatting limits
 
 - **LibXL 5.x Compatibility:**
   - Fixed `const char**` type incompatibility in `xlFilterColumnGetCustomFilter`
 
 - **Docker Support:**
   - Added `Dockerfile` for building and testing
-  - Added `docker-compose.yml` for multi-version PHP testing (7.4, 8.0, 8.1, 8.2, 8.3)
+  - Added `docker-compose.yml` for multi-version PHP testing (8.3, 8.4)
 
 ### Migration performed by
 
@@ -35,8 +41,9 @@ This project is based on the work of many contributors:
 | Author | Contribution |
 |--------|-------------|
 | **[Ilia Alshanetsky](https://github.com/iliaal)** | Original author, main development |
-| **[Johannes Mueller](https://github.com/johmue)** | Major contributor, Windows builds |
+| **[Johannes Mueller](https://github.com/johmue)** | Major contributor |
 | **[Jan Ehrhardt](https://github.com/Jan-E)** | PHP 7/8 support, maintenance |
+| **[doPhp](https://github.com/doPhp)** | Excel extension fork |
 | **Philip Hofstetter** | Contributions |
 | **Stephan Fischer** | Contributions |
 | **Pierre Joye** | Contributions |
@@ -46,12 +53,13 @@ This project is based on the work of many contributors:
 
 - **Original:** https://github.com/iliaal/php_excel
 - **PHP 7/8 Fork:** https://github.com/Jan-E/php_excel
+- **doPhp Fork:** https://github.com/doPhp/excel
 
 ---
 
 ## Requirements
 
-- PHP 7.4+ or PHP 8.x
+- PHP 8.2+
 - [LibXL](http://www.libxl.com/) 3.6.0+ (commercial library)
 
 ## Installation
@@ -78,8 +86,8 @@ docker compose up
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/php_excel.git
-cd php_excel
+git clone https://github.com/YOUR_USERNAME/libxl_php8.git
+cd libxl_php8
 
 # Build extension
 phpize
@@ -104,7 +112,6 @@ echo "extension=excel.so" >> /path/to/php.ini
 | Linux ARM32 | `lib-armhf` |
 | Linux x86 | `lib` |
 | macOS | `lib` |
-| Windows | See [Windows builds](https://www.apachelounge.com/viewtopic.php?t=6617) |
 
 ## Quick Start
 
@@ -147,7 +154,6 @@ excel.skip_empty=0
 - See `docs/` directory for API documentation
 - See `tests/` directory for usage examples
 - [LibXL C API Documentation](http://www.libxl.com/documentation.html)
-- [Original presentation slides](http://ilia.ws/files/confoo_phpexcel.pdf)
 
 ## Testing
 
@@ -183,3 +189,4 @@ LibXL is a commercial library - see [libxl.com](http://www.libxl.com/) for licen
 - [LibXL Official Website](http://www.libxl.com/)
 - [Original php_excel Repository](https://github.com/iliaal/php_excel)
 - [Jan-E's PHP 7/8 Fork](https://github.com/Jan-E/php_excel)
+- [doPhp's Excel Fork](https://github.com/doPhp/excel)

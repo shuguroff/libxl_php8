@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 libxl_php8 — PHP-расширение (PECL-style) для работы с Excel-файлами через библиотеку LibXL. Форк с полной поддержкой PHP 8.x и LibXL 5.x.
 
-**Требования:** PHP 7.4+ или PHP 8.x, LibXL 3.6.0+
+**Требования:** PHP 8.2+, LibXL 3.6.0+
 
 ## Build Commands
 
@@ -23,9 +23,9 @@ make test
 # Тесты с лицензией LibXL
 make test TESTS="-d excel.license_name=NAME -d excel.license_key=KEY"
 
-# Docker сборка и тестирование (PHP 7.4, 8.0, 8.1, 8.2, 8.3)
-docker-compose build
-docker-compose up
+# Docker сборка и тестирование (PHP 8.3, 8.4)
+docker compose build
+docker compose up
 ```
 
 ## Architecture
@@ -34,7 +34,6 @@ docker-compose up
 - `excel.c` — основная реализация (7300+ строк): все классы, методы, константы
 - `php_excel.h` — заголовочный файл: макросы, структуры объектов, глобальные переменные модуля
 - `config.m4` — конфигурация сборки Unix/Linux
-- `config.w32` — конфигурация сборки Windows
 
 ### Object Model
 

@@ -41,8 +41,6 @@ Numbers, etc...
   <contents>
     <dir name="/">
       <file name="config.m4" role="src" />
-      <file name="config.w32" role="src" />
-
       <file name="excel.c" role="src" />
       <file name="php_excel.h" role="src" />
 

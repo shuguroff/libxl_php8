@@ -1,4 +1,4 @@
-# docker-compose для тестирования php_excel на разных версиях PHP
+# docker-compose для тестирования libxl_php8 на разных версиях PHP
 #
 # Использование:
 #   docker compose build              # собрать все образы (без лицензии)

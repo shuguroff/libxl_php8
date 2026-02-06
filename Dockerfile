@@ -1,5 +1,5 @@
-# Dockerfile для сборки и тестирования php_excel на разных версиях PHP
-# Использование: docker build --build-arg PHP_VERSION=8.3 -t php_excel_test .
+# Dockerfile для сборки и тестирования libxl_php8 на разных версиях PHP
+# Использование: docker build --build-arg PHP_VERSION=8.3 -t libxl_php8_test .
 #
 # Требуется скачать LibXL с https://www.libxl.com/ и положить в директорию libxl/
 
@@ -31,7 +31,7 @@ RUN ln -sf /opt/libxl/lib64/libxl.so /usr/lib/libxl.so && ldconfig
 RUN ls -la /opt/libxl/lib64/ && nm -D /opt/libxl/lib64/libxl.so | grep -i xlCreateBook || echo "xlCreateBook not found"
 
 # Копирование исходников расширения
-WORKDIR /usr/src/php_excel
+WORKDIR /usr/src/libxl_php8
 COPY . .
 
 # Сборка расширения

@@ -13,6 +13,15 @@
 # Для x86-64 библиотеки на Apple Silicon используется эмуляция через Rosetta.
 
 services:
+  php82:
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.2"
+        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+
   php83:
     platform: linux/amd64
     build:
@@ -28,5 +37,14 @@ services:
       context: .
       args:
         PHP_VERSION: "8.4"
+        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+
+  php85:
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.5"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}

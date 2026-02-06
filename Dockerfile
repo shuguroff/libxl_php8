@@ -34,6 +34,11 @@ RUN ls -la /opt/libxl/lib64/ && nm -D /opt/libxl/lib64/libxl.so | grep -i xlCrea
 WORKDIR /usr/src/libxl_php8
 COPY . .
 
+# Удаляем артефакты локальной сборки (могут содержать абсолютные пути хоста)
+RUN rm -f Makefile Makefile.objects Makefile.fragments config.h config.log config.status libtool excel.dep \
+    && find . \( -name '*.lo' -o -name '*.o' -o -name '*.la' -o -name '*.so' -o -name '*.dep' \) -exec rm -f {} + \
+    && rm -rf .libs modules autom4te.cache
+
 # Сборка расширения
 ENV LD_LIBRARY_PATH=/opt/libxl/lib64:$LD_LIBRARY_PATH
 RUN phpize \

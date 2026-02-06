@@ -26,7 +26,7 @@ This is a modernized fork with **full PHP 8.x support** and compatibility with *
 
 - **Docker Support:**
   - Added `Dockerfile` for building and testing
-  - Added `docker-compose.yml` for multi-version PHP testing (8.3, 8.4)
+  - Added `docker-compose.yml` for multi-version PHP testing (8.2–8.5)
 
 ### Migration performed by
 
@@ -76,6 +76,18 @@ rm libxl.tar.gz
 # Build and test on PHP 8.2
 docker compose build php82
 docker compose up php82
+
+# Build and test on PHP 8.3
+docker compose build php83
+docker compose up php83
+
+# Build and test on PHP 8.4
+docker compose build php84
+docker compose up php84
+
+# Build and test on PHP 8.5
+docker compose build php85
+docker compose up php85
 
 # Test on all PHP versions
 docker compose build
@@ -176,7 +188,7 @@ LibXL is a commercial library - see [libxl.com](http://www.libxl.com/) for licen
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests: `docker compose up php82`
+4. Run tests: `docker compose up php82` (or `php83`, `php84`, `php85`)
 5. Submit a pull request
 
 ## Known Issues

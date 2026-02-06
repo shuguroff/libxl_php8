@@ -20,8 +20,18 @@ date.timezone=America/Toronto
 
 	var_dump($s->writeRow(2, $data, 0, $format));
 
-	var_dump($s->writeRow(-1, $data));
-	var_dump($s->writeRow(1, $data, -1));
+	try {
+		var_dump($s->writeRow(-1, $data));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
+	try {
+		var_dump($s->writeRow(1, $data, -1));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
 
 	var_dump($s->readRow(0));
 	var_dump($s->readRow(1));
@@ -35,11 +45,9 @@ date.timezone=America/Toronto
 bool(true)
 bool(true)
 bool(true)
-
-Warning: ExcelSheet::writeRow(): Invalid row number '-1' in %s on line %d
+EXCEPTION: Invalid row number '-1'
 bool(false)
-
-Warning: ExcelSheet::writeRow(): Invalid starting column number '-1' in %s on line %d
+EXCEPTION: Invalid starting column number '-1'
 bool(false)
 array(15) {
   [0]=>

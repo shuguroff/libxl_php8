@@ -10,7 +10,12 @@ Sheet::addrToRowCol() / Sheet::rowColToAddr()
 	$data = $s->rowColToAddr(1,1);
 
 	var_dump($data, $s->addrToRowCol($data));
-	var_dump($s->addrToRowCol(""));
+	try {
+		var_dump($s->addrToRowCol(""));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
 ?>
 --EXPECTF--
 bool(true)
@@ -25,6 +30,5 @@ array(4) {
   ["row_relative"]=>
   bool(true)
 }
-
-Warning: ExcelSheet::addrToRowCol(): Cell reference cannot be empty in %s on line %d
+EXCEPTION: Cell reference cannot be empty
 bool(false)

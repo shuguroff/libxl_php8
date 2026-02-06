@@ -22,12 +22,42 @@ date.timezone=America/Toronto
 	var_dump($s->readRow(2, 4), $x->getError());	
 	var_dump($s->readRow(2, 5, 5), $x->getError());
 
-	var_dump($s->readRow(-2));
-	var_dump($s->readRow(22));
-	var_dump($s->readRow(2, -1));
-	var_dump($s->readRow(2, 55));
-	var_dump($s->readRow(2, 2, 1));
-	var_dump($s->readRow(2, 2, 39));
+	try {
+		var_dump($s->readRow(-2));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
+	try {
+		var_dump($s->readRow(22));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
+	try {
+		var_dump($s->readRow(2, -1));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
+	try {
+		var_dump($s->readRow(2, 55));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
+	try {
+		var_dump($s->readRow(2, 2, 1));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
+	try {
+		var_dump($s->readRow(2, 2, 39));
+	} catch (ExcelException $e) {
+		echo "EXCEPTION: " . $e->getMessage() . "\n";
+		var_dump(false);
+	}
 
 
 	
@@ -77,22 +107,16 @@ array(1) {
   string(0) ""
 }
 bool(false)
-
-Warning: ExcelSheet::readRow(): Invalid row number '-2' in %s on line %d
+EXCEPTION: Invalid row number '-2'
 bool(false)
-
-Warning: ExcelSheet::readRow(): Invalid row number '22' in %s on line %d
+EXCEPTION: Invalid row number '22'
 bool(false)
-
-Warning: ExcelSheet::readRow(): Invalid starting column number '-1' in %s on line %d
+EXCEPTION: Invalid starting column number '-1'
 bool(false)
-
-Warning: ExcelSheet::readRow(): Invalid starting column number '55' in %s on line %d
+EXCEPTION: Invalid starting column number '55'
 bool(false)
-
-Warning: ExcelSheet::readRow(): Invalid ending column number '1' in %s on line %d
+EXCEPTION: Invalid ending column number '1'
 bool(false)
-
-Warning: ExcelSheet::readRow(): Invalid ending column number '39' in %s on line %d
+EXCEPTION: Invalid ending column number '39'
 bool(false)
 OK

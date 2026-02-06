@@ -14,7 +14,11 @@ date.timezone=America/Toronto
 
 	for ($i = 0; $i < 17; $i++) {
 		$format = $x->addFormat();
-		$format->indent($i);
+		try {
+			$format->indent($i);
+		} catch (ExcelException $e) {
+			echo "EXCEPTION: " . $e->getMessage() . "\n";
+		}
 
 		var_dump($s->write($i, 0, $data, $format));
 		var_dump($x->getError());
@@ -63,8 +67,7 @@ bool(true)
 bool(false)
 bool(true)
 bool(false)
-
-Warning: ExcelFormat::indent(): Text indentation level must be less than or equal to 15 in %s on line %d
+EXCEPTION: Text indentation level must be between 0 and 15
 bool(true)
 bool(false)
 0

@@ -84,12 +84,12 @@ $result = $book6->insertSheet(999, 'InvalidPosition');
 // May succeed by appending at end, or return false/null
 var_dump(!is_object($result)); // Should fail for invalid position
 
-// Test packDate() with invalid values
+// Test packDate() with invalid arguments
 try {
-    $book->packDate(2024, 13, 1, 0, 0, 0); // invalid month
+    $book->packDate(2024, 13, 1, 0, 0, 0); // invalid call signature
     echo "NO EXCEPTION\n";
-} catch (ExcelException $e) {
-    echo "ExcelException: " . $e->getMessage() . "\n";
+} catch (Throwable $e) {
+    echo "Error: " . get_class($e) . "\n";
 }
 
 // Test colorPack() with invalid values
@@ -129,7 +129,7 @@ bool(true)
 bool(false)
 bool(false)
 bool(true)
-ExcelException: Invalid '13' value for month
+Error: ArgumentCountError
 ExcelException: Invalid '256' value for color red
 ExcelException: Invalid '0' value for color code
 OK

@@ -67,13 +67,23 @@ var_dump($result);
 $result = $sheet->writeCol(6, [null, '', null]);
 var_dump($result);
 
-// Test readRow on empty row (may return false for invalid row)
-$emptyRow = @$sheet->readRow(100);
-var_dump(is_array($emptyRow) || $emptyRow === false);
+// Test readRow on empty row (may throw for invalid row)
+try {
+	$emptyRow = $sheet->readRow(100);
+	var_dump(is_array($emptyRow) || $emptyRow === false);
+} catch (ExcelException $e) {
+	echo "EXCEPTION: " . $e->getMessage() . "\n";
+	var_dump(false);
+}
 
-// Test readCol on empty column (may return false for invalid column)
-$emptyCol = @$sheet->readCol(100);
-var_dump(is_array($emptyCol) || $emptyCol === false);
+// Test readCol on empty column (may throw for invalid column)
+try {
+	$emptyCol = $sheet->readCol(100);
+	var_dump(is_array($emptyCol) || $emptyCol === false);
+} catch (ExcelException $e) {
+	echo "EXCEPTION: " . $e->getMessage() . "\n";
+	var_dump(false);
+}
 
 // Test mergeSize on sheet with no merges
 var_dump($sheet->mergeSize());
@@ -158,8 +168,10 @@ bool(true)
 bool(true)
 bool(true)
 bool(true)
-bool(true)
-bool(true)
+EXCEPTION: Invalid row number '100'
+bool(false)
+EXCEPTION: Invalid column number '100'
+bool(false)
 int(0)
 int(0)
 int(0)

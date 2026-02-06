@@ -26,7 +26,11 @@ date.timezone=America/Toronto
     
     var_dump($colWidthBefore < $colWidthAfter);
     
-    $s->setColWidth(4, 4, -2);
+    try {
+        $s->setColWidth(4, 4, -2);
+    } catch (ExcelException $e) {
+        echo "EXCEPTION: " . $e->getMessage() . "\n";
+    }
     
 	echo "OK\n";
 ?>
@@ -35,7 +39,6 @@ float(55)
 float(50)
 float(8)
 bool(true)
-
-Warning: ExcelSheet::setColWidth(): Width cannot be less then -1 in %s on line %d
+EXCEPTION: Width cannot be less than -1
 OK
 	

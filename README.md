@@ -60,70 +60,165 @@ This project is based on the work of many contributors:
 ## Requirements
 
 - PHP 8.2+
-- [LibXL](http://www.libxl.com/) 3.6.0+ (commercial library)
+- [LibXL](http://www.libxl.com/) 3.6.0+ (commercial library, trial version available)
 
 ## Installation
 
-### Using Docker (Recommended for Testing)
+### 1. Clone the Repository
 
 ```bash
-# Download LibXL for Linux
+git clone https://github.com/shuguroff/libxl_php8.git
+cd libxl_php8
+```
+
+### 2a. Using Docker (Recommended for Testing)
+
+Requires [Docker](https://docs.docker.com/get-docker/) with Docker Compose.
+
+```bash
+# Download LibXL for Linux (x86_64)
 curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-lin-5.1.0.tar.gz"
 tar -xzf libxl.tar.gz
 mv libxl-5.1.0 libxl
 rm libxl.tar.gz
 
-# Build and test on PHP 8.2
-docker compose build php82
-docker compose up php82
-
-# Build and test on PHP 8.3
+# Build and test on a specific PHP version
 docker compose build php83
 docker compose up php83
 
-# Build and test on PHP 8.4
-docker compose build php84
-docker compose up php84
-
-# Build and test on PHP 8.5
-docker compose build php85
-docker compose up php85
-
-# Test on all PHP versions
+# Or test on all PHP versions (8.2, 8.3, 8.4, 8.5)
 docker compose build
 docker compose up
 ```
 
-### Manual Build (Linux/macOS)
+To build with a LibXL license:
 
 ```bash
-# Clone repository
-git clone https://github.com/YOUR_USERNAME/libxl_php8.git
-cd libxl_php8
+LIBXL_LICENSE_NAME="Your Name" LIBXL_LICENSE_KEY="your-key" docker compose build
+docker compose up
+```
 
-# Build extension
+### 2b. Manual Build on Linux
+
+Install prerequisites:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install php-dev libxml2-dev make gcc
+
+# RHEL/CentOS/Fedora
+sudo dnf install php-devel libxml2-devel make gcc
+```
+
+Download and install LibXL:
+
+```bash
+curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-lin-5.1.0.tar.gz"
+tar -xzf libxl.tar.gz
+sudo mv libxl-5.1.0 /opt/libxl
+rm libxl.tar.gz
+
+# Make the library available system-wide
+sudo ln -sf /opt/libxl/lib64/libxl.so /usr/lib/libxl.so
+sudo ldconfig
+```
+
+Build and install the extension:
+
+```bash
 phpize
 ./configure \
     --with-excel \
-    --with-libxl-incdir=/path/to/libxl/include_c \
-    --with-libxl-libdir=/path/to/libxl/lib64
-
+    --with-libxl-incdir=/opt/libxl/include_c \
+    --with-libxl-libdir=/opt/libxl/lib64
 make
-make install
-
-# Enable extension
-echo "extension=excel.so" >> /path/to/php.ini
+sudo make install
 ```
 
-### Build Options
+Enable the extension:
 
-| Platform | Library Directory |
-|----------|------------------|
+```bash
+# Find your php.ini
+php --ini | head -1
+
+# Add the extension (adjust path to your php.ini)
+echo "extension=excel.so" | sudo tee /etc/php/conf.d/excel.ini
+```
+
+**Library directory by platform:**
+
+| Platform | Directory |
+|----------|-----------|
 | Linux x86_64 | `lib64` |
 | Linux ARM64 | `lib-aarch64` |
 | Linux ARM32 | `lib-armhf` |
 | Linux x86 | `lib` |
-| macOS | `lib` |
+
+### 2c. Manual Build on macOS
+
+Install prerequisites:
+
+```bash
+# If using Homebrew PHP
+brew install php
+
+# Or ensure phpize is available
+phpize --version
+```
+
+Download and extract LibXL for macOS:
+
+```bash
+curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-mac-5.1.0.tar.gz"
+tar -xzf libxl.tar.gz
+mv libxl-5.1.0 libxl-mac
+rm libxl.tar.gz
+```
+
+**Fix the library install name** (required on macOS, otherwise the extension will fail to load silently):
+
+```bash
+# Check the current install name (will likely show just "libxl.dylib" without a path)
+otool -D libxl-mac/lib/libxl.dylib
+
+# Set the full absolute path as install name
+install_name_tool -id "$(pwd)/libxl-mac/lib/libxl.dylib" libxl-mac/lib/libxl.dylib
+
+# Re-sign the library (required after modification on macOS)
+codesign -f -s - libxl-mac/lib/libxl.dylib
+```
+
+Build the extension:
+
+```bash
+phpize
+./configure \
+    --with-excel \
+    --with-libxl-incdir="$(pwd)/libxl-mac/include_c" \
+    --with-libxl-libdir="$(pwd)/libxl-mac/lib"
+make
+```
+
+Verify it loads:
+
+```bash
+php -d "extension=$(pwd)/modules/excel.so" -m | grep excel
+```
+
+Install:
+
+```bash
+# Copy to the PHP extensions directory
+cp modules/excel.so "$(php-config --extension-dir)/excel.so"
+
+# Find your php.ini and add the extension
+php --ini | head -1
+# Add this line to your php.ini:
+#   extension=excel.so
+```
+
+> **Note:** The absolute path to `libxl-mac/lib/libxl.dylib` is embedded in `excel.so`.
+> If you move the `libxl-mac` directory, you will need to rebuild the extension.
 
 ## Quick Start
 
@@ -186,10 +281,11 @@ LibXL is a commercial library - see [libxl.com](http://www.libxl.com/) for licen
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `docker compose up php82` (or `php83`, `php84`, `php85`)
-5. Submit a pull request
+2. Clone your fork: `git clone https://github.com/<your-username>/libxl_php8.git`
+3. Create a feature branch: `git checkout -b my-feature`
+4. Make your changes
+5. Run tests: `docker compose build php83 && docker compose up php83`
+6. Submit a pull request
 
 ## Known Issues
 

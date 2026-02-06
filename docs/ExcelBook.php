@@ -552,4 +552,13 @@ class ExcelBook
 	{
 	} // unpackDate
 
+	/**
+	* Check if a valid license key is required.
+	*
+	* @return bool
+	*/
+	public function requiresKey()
+	{
+	} // requiresKey
+
 } // end ExcelBook

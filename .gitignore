@@ -1,3 +1,28 @@
 .DS_Store
 .env
 libxl/
+
+# Артефакты phpize / make
+.libs/
+build/
+modules/
+autom4te.cache/
+config.h
+config.h.in
+config.log
+config.nice
+config.status
+configure
+configure.ac
+Makefile
+Makefile.fragments
+Makefile.objects
+*.lo
+*.la
+*.loT
+*.dep
+libtool
+run-tests.php
+
+# Локальная копия LibXL
+libxl-mac/

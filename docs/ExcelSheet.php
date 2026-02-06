@@ -396,6 +396,19 @@ class ExcelSheet
 	} // colWidth
 
 	/**
+	* Returns the column width in pixels.
+	*
+	* @since LibXL 3.8.6
+	* @see ExcelSheet::colWidth()
+	* @see ExcelSheet::rowHeightPx()
+	* @param int $column 0-based column number
+	* @return int
+	*/
+	public function colWidthPx($column)
+	{
+	} // colWidthPx
+
+	/**
 	* Copy a cell from one location to another
 	*
 	* @param int $row_from 0-based row number
@@ -1090,6 +1103,19 @@ class ExcelSheet
 	} // rowHeight
 
 	/**
+	* Returns the row height in pixels.
+	*
+	* @since LibXL 3.8.6
+	* @see ExcelSheet::rowHeight()
+	* @see ExcelSheet::colWidthPx()
+	* @param int $row 0-based row number
+	* @return int
+	*/
+	public function rowHeightPx($row)
+	{
+	} // rowHeightPx
+
+	/**
 	* Returns whether row is hidden.
 	*
 	* @param int $row 0-based row number
@@ -1402,12 +1428,23 @@ class ExcelSheet
 	/**
 	* Sets the color for the sheet's tab.
 	*
-	* @param int $color - one of the ExcelSheet::COLOR_* constants (optional, default=0)
+	* @param int $color - one of the ExcelFormat::COLOR_* constants (optional, default=0)
 	* @return bool
 	*/
 	public function setTabColor($color=0)
 	{
 	} // setTabColor
+
+	/**
+	* Sets the RGB color for the sheet's tab.
+	*
+	* @since LibXL 3.7.0
+	* @param int $color RGB color value (e.g., 0xFF0000 for red)
+	* @return bool
+	*/
+	public function setTabRgbColor($color)
+	{
+	} // setTabRgbColor
 
 	/**
 	* Gets repeated columns on each page from colFirst to colLast. Returns false
@@ -1615,6 +1652,38 @@ class ExcelSheet
 	} // write
 
 	/**
+	* Write a formula into a cell with optional precalculated value.
+	*
+	* When a precalculated value is provided, Excel will display this value
+	* immediately without needing to recalculate the formula. This is useful
+	* for showing formula results in applications that don't recalculate formulas.
+	*
+	* @since LibXL 3.7.0
+	* @param int $row 0-based row number
+	* @param int $column 0-based column number
+	* @param string $formula The formula (without leading '=')
+	* @param ExcelFormat $format (optional, default=null)
+	* @param mixed $precalculated_value (optional) Precalculated result: number, string, or boolean
+	* @return bool
+	*
+	* @example
+	* // Formula without precalculated value
+	* $sheet->writeFormula(0, 0, "SUM(A2:A10)");
+	*
+	* // Formula with precalculated numeric value
+	* $sheet->writeFormula(0, 0, "SUM(A2:A10)", null, 42.5);
+	*
+	* // Formula with precalculated string value
+	* $sheet->writeFormula(0, 0, "CONCAT(A1,B1)", null, "Hello World");
+	*
+	* // Formula with precalculated boolean value
+	* $sheet->writeFormula(0, 0, "A1>B1", null, true);
+	*/
+	public function writeFormula($row, $column, $formula, $format = null, $precalculated_value = null)
+	{
+	} // writeFormula
+
+	/**
 	* Write an array of values into a column
 	*
 	* @param int $column 0-based column number
@@ -1686,5 +1755,20 @@ class ExcelSheet
 	public function zoomPrint()
 	{
 	} // zoomPrint
+
+	/**
+	* Set the area for auto-fitting columns/rows.
+	* The function setCol() with -1 width value will affect only
+	* the specified limited area.
+	*
+	* @param int $rowFirst First row
+	* @param int $colFirst First column
+	* @param int $rowLast Last row
+	* @param int $colLast Last column
+	* @return bool
+	*/
+	public function setAutoFitArea($rowFirst = 0, $colFirst = 0, $rowLast = -1, $colLast = -1)
+	{
+	} // setAutoFitArea
 
 } // end ExcelSheet

@@ -75,6 +75,11 @@ if (LIBXL_VERSION >= 0x03080300) {
 
 echo "OK\n";
 ?>
+--CLEAN--
+<?php
+@unlink(sys_get_temp_dir() . '/test_image_libxl.png');
+@unlink(sys_get_temp_dir() . '/test_book_loadinfo.xlsx');
+?>
 --EXPECT--
 int(3)
 bool(true)

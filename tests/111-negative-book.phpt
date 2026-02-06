@@ -45,13 +45,13 @@ $pictureId = @$book->addPictureFromFile('/non/existent/image.png');
 var_dump($pictureId);
 
 // Test addPictureFromString() with invalid data
-$pictureId = @$book->addPictureFromString('not a valid image');
+$pictureId = $book->addPictureFromString('not a valid image');
 var_dump($pictureId);
 
 // Test copySheet() with invalid source index
 $book3 = new ExcelBook(null, null, true);
 $book3->addSheet('Original');
-$copied = @$book3->copySheet('Copy', 999);
+$copied = $book3->copySheet('Copy', 999);
 var_dump($copied);
 
 // Test getCustomFormat() with invalid ID
@@ -61,11 +61,11 @@ var_dump($format);
 // Test getPicture() with invalid index
 $book4 = new ExcelBook(null, null, true);
 $book4->addSheet('Test');
-$picture = @$book4->getPicture(0);
+$picture = $book4->getPicture(0);
 var_dump($picture);
 
 // Test sheetType() with invalid index - returns SHEETTYPE_UNKNOWN (2)
-$sheetType = @$book->sheetType(999);
+$sheetType = $book->sheetType(999);
 var_dump($sheetType === ExcelBook::SHEETTYPE_UNKNOWN || $sheetType === false);
 
 // Test unpackDate() with invalid value (may return unexpected timestamp)
@@ -75,14 +75,38 @@ var_dump(is_int($date)); // Returns int even for invalid input
 // Test activeSheet() with invalid index
 $book5 = new ExcelBook(null, null, true);
 $book5->addSheet('Sheet1');
-$result = @$book5->setActiveSheet(999);
+$result = $book5->setActiveSheet(999);
 var_dump($result);
 
 // Test insertSheet() at invalid position
 $book6 = new ExcelBook(null, null, true);
-$result = @$book6->insertSheet(999, 'InvalidPosition');
+$result = $book6->insertSheet(999, 'InvalidPosition');
 // May succeed by appending at end, or return false/null
 var_dump(!is_object($result)); // Should fail for invalid position
+
+// Test packDate() with invalid values
+try {
+    $book->packDate(2024, 13, 1, 0, 0, 0); // invalid month
+    echo "NO EXCEPTION\n";
+} catch (ExcelException $e) {
+    echo "ExcelException: " . $e->getMessage() . "\n";
+}
+
+// Test colorPack() with invalid values
+try {
+    $book->colorPack(256, 0, 0); // red > 255
+    echo "NO EXCEPTION\n";
+} catch (ExcelException $e) {
+    echo "ExcelException: " . $e->getMessage() . "\n";
+}
+
+// Test colorUnpack() with invalid value
+try {
+    $book->colorUnpack(0); // color <= 0
+    echo "NO EXCEPTION\n";
+} catch (ExcelException $e) {
+    echo "ExcelException: " . $e->getMessage() . "\n";
+}
 
 echo "OK\n";
 ?>
@@ -105,4 +129,7 @@ bool(true)
 bool(false)
 bool(false)
 bool(true)
+ExcelException: Invalid '13' value for month
+ExcelException: Invalid '256' value for color red
+ExcelException: Invalid '0' value for color code
 OK

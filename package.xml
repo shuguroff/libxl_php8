@@ -19,10 +19,10 @@ Numbers, etc...
     <email>ilia@ilia.ws</email>
     <active>yes</active>
   </lead>
-  <date>2016-07-04</date>
+  <date>2026-02-06</date>
   <version>
-    <release>1.0.2</release>
-    <api>1.0.2</api>
+    <release>1.1.0</release>
+    <api>1.1.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -30,7 +30,13 @@ Numbers, etc...
   </stability>
   <license uri="http://www.php.net/license/3_01.txt">PHP</license>
   <notes>
-   - Version 1.0.9
+   - Version 1.1.0
+   - PHP 8.2+ required
+   - LibXL 3.6.0+ required
+   - Switched from E_WARNING to ExcelException
+   - Added XLSX format checks for XLSX-only features
+   - Memory safety fixes (writeError NULL check, ZVAL_UNDEF)
+   - Named constants for formatting limits
   </notes>
   <contents>
     <dir name="/">
@@ -40,7 +46,7 @@ Numbers, etc...
       <file name="excel.c" role="src" />
       <file name="php_excel.h" role="src" />
 
-      <file name="README.markdown" role="doc" />
+      <file name="README.md" role="doc" />
       <file name="CREDITS" role="doc" />
       <file name="ChangeLog" role="doc" />
 
@@ -49,6 +55,8 @@ Numbers, etc...
 	  	<file name="ExcelFont.php" role="doc" />
 	  	<file name="ExcelFormat.php" role="doc" />
 	  	<file name="ExcelSheet.php" role="doc" />
+	  	<file name="ExcelAutoFilter.php" role="doc" />
+	  	<file name="ExcelFilterColumn.php" role="doc" />
 	  </dir>
 
       <dir name="tests">
@@ -143,6 +151,29 @@ Numbers, etc...
 		<file name="089.phpt" role="test" />
 		<file name="090.phpt" role="test" />
 		<file name="091.phpt" role="test" />
+		<file name="092.phpt" role="test" />
+		<file name="093.phpt" role="test" />
+		<file name="094.phpt" role="test" />
+		<file name="095.phpt" role="test" />
+		<file name="100-autofilter.phpt" role="test" />
+		<file name="101-filtercolumn.phpt" role="test" />
+		<file name="102-sheet-libxl37.phpt" role="test" />
+		<file name="103-sheet-libxl38.phpt" role="test" />
+		<file name="104-book-libxl38.phpt" role="test" />
+		<file name="105-book-misc.phpt" role="test" />
+		<file name="106-sheet-groups.phpt" role="test" />
+		<file name="107-sheet-pagebreaks.phpt" role="test" />
+		<file name="108-sheet-pictures.phpt" role="test" />
+		<file name="109-sheet-printfit.phpt" role="test" />
+		<file name="110-format-patterns.phpt" role="test" />
+		<file name="111-negative-book.phpt" role="test" />
+		<file name="112-negative-sheet.phpt" role="test" />
+		<file name="113-edge-unicode.phpt" role="test" />
+		<file name="114-edge-limits.phpt" role="test" />
+		<file name="115-edge-empty.phpt" role="test" />
+		<file name="116-integration-complex.phpt" role="test" />
+		<file name="117-writeFormula.phpt" role="test" />
+		<file name="118-sheet-libxl386.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />
@@ -152,7 +183,7 @@ Numbers, etc...
   <dependencies>
     <required>
       <php>
-        <min>7.0.0</min>
+        <min>8.2.0</min>
       </php>
       <pearinstaller>
         <min>1.4.0b1</min>

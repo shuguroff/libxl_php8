@@ -166,8 +166,7 @@ static void excel_font_object_free_storage(zend_object *object)
 	zend_object_std_dtor(&intern->std);
 }
 
-#define REGISTER_EXCEL_CLASS_CONST_LONG(class_name, const_name, value) \
-	zend_declare_class_constant_long(excel_ce_ ## class_name, const_name, sizeof(const_name)-1, (long)value);
+/* REGISTER_EXCEL_CLASS_CONST_LONG is now in php_excel.h */
 
 #define REGISTER_EXCEL_CLASS_CONST_STRING(class_name, const_name, value) \
 	zend_declare_class_constant_string(excel_ce_ ## class_name, const_name, sizeof(const_name)-1, (char *)value);
@@ -3538,6 +3537,55 @@ EXCEL_METHOD(Sheet, lastFilledCol)
 /* }}} */
 #endif
 
+#if LIBXL_VERSION >= 0x04000000
+/* {{{ proto int ExcelSheet::formControlSize()
+	Returns the number of form controls on the sheet */
+EXCEL_METHOD(Sheet, formControlSize)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	RETURN_LONG(xlSheetFormControlSize(sheet));
+}
+/* }}} */
+
+/* {{{ proto ExcelFormControl|false ExcelSheet::formControl(int index)
+	Returns the form control at the specified index */
+EXCEL_METHOD(Sheet, formControl)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long index;
+	excel_formcontrol_object *obj;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	FormControlHandle fch = xlSheetFormControl(sheet, (int)index);
+
+	if (!fch) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_formcontrol(excel_ce_formcontrol));
+	obj = Z_EXCEL_FORMCONTROL_OBJ_P(return_value);
+	obj->formcontrol = fch;
+	obj->sheet = sheet;
+	obj->book = book;
+}
+/* }}} */
+#endif
+
 /* {{{ proto bool ExcelSheet::displayGridlines()
 	Returns whether the gridlines are displayed */
 EXCEL_METHOD(Sheet, displayGridlines)
@@ -5591,6 +5639,31 @@ EXCEL_METHOD(AutoFilter, setSort)
 }
 /* }}} */
 
+#if LIBXL_VERSION >= 0x04000000
+/* {{{ proto bool ExcelAutoFilter::addSort(int columnIndex, bool descending)
+	Adds a sort condition to the AutoFilter */
+EXCEL_METHOD(AutoFilter, addSort)
+{
+	zval *object = getThis();
+	AutoFilterHandle autofilter;
+	zend_long columnIndex;
+	zend_bool descending = 0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l|b", &columnIndex, &descending) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	AUTOFILTER_FROM_OBJECT(autofilter, object);
+
+	if (!xlAutoFilterAddSort(autofilter, columnIndex, descending)) {
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+#endif
+
 /* {{{ proto ExcelFilterColumn ExcelFilterColumn::__construct(ExcelAutoFilter autofilter)
 	Sheet Constructor. */
 EXCEL_METHOD(FilterColumn, __construct)
@@ -7137,6 +7210,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_lastFilledCol, 0, 0, 0)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x04000000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_formControlSize, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_formControl, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_addSort, 0, 0, 1)
+	ZEND_ARG_INFO(0, columnIndex)
+	ZEND_ARG_INFO(0, descending)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -7363,6 +7450,10 @@ zend_function_entry excel_funcs_sheet[] = {
 	EXCEL_ME(Sheet, firstFilledCol, arginfo_Sheet_firstFilledCol, 0)
 	EXCEL_ME(Sheet, lastFilledCol, arginfo_Sheet_lastFilledCol, 0)
 #endif
+#if LIBXL_VERSION >= 0x04000000
+	EXCEL_ME(Sheet, formControlSize, arginfo_Sheet_formControlSize, 0)
+	EXCEL_ME(Sheet, formControl, arginfo_Sheet_formControl, 0)
+#endif
 	PHP_FE_END
 };
 
@@ -7421,6 +7512,9 @@ zend_function_entry excel_funcs_autofilter[] = {
 	EXCEL_ME(AutoFilter, getSortRange, arginfo_AutoFilter_getSortRange, 0)
 	EXCEL_ME(AutoFilter, getSort, arginfo_AutoFilter_getSort, 0)
 	EXCEL_ME(AutoFilter, setSort, arginfo_AutoFilter_setSort, 0)
+#if LIBXL_VERSION >= 0x04000000
+	EXCEL_ME(AutoFilter, addSort, arginfo_AutoFilter_addSort, 0)
+#endif
 	PHP_FE_END
 };
 

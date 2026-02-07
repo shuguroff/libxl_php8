@@ -104,4 +104,16 @@ class ExcelAutoFilter
 	{
 	} // setSort
 
+	/**
+	* Adds a sort condition to the AutoFilter.
+	* Requires LibXL >= 4.0.0.
+	*
+	* @param int $columnIndex
+	* @param bool $descending
+	* @return bool
+	*/
+	public function addSort($columnIndex, $descending = false)
+	{
+	} // addSort
+
 } // end ExcelAutoFilter

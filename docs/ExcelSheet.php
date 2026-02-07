@@ -906,6 +906,27 @@ class ExcelSheet
 	} // lastFilledCol
 
 	/**
+	* Returns the number of form controls on the sheet.
+	* Requires LibXL >= 4.0.0.
+	*
+	* @return int
+	*/
+	public function formControlSize()
+	{
+	} // formControlSize
+
+	/**
+	* Returns the form control at the specified index.
+	* Requires LibXL >= 4.0.0.
+	*
+	* @param int $index
+	* @return ExcelFormControl|false
+	*/
+	public function formControl($index)
+	{
+	} // formControl
+
+	/**
 	* Returns the bottom margin of the sheet (in inches)
 	*
 	* @see ExcelSheet::marginTop()

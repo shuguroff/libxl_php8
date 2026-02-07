@@ -42,6 +42,11 @@ Numbers, etc...
     <dir name="/">
       <file name="config.m4" role="src" />
       <file name="excel.c" role="src" />
+      <file name="excel_richstring.c" role="src" />
+      <file name="excel_formcontrol.c" role="src" />
+      <file name="excel_condformat.c" role="src" />
+      <file name="excel_coreprops.c" role="src" />
+      <file name="excel_table.c" role="src" />
       <file name="php_excel.h" role="src" />
 
       <file name="README.md" role="doc" />
@@ -55,6 +60,7 @@ Numbers, etc...
 	  	<file name="ExcelSheet.php" role="doc" />
 	  	<file name="ExcelAutoFilter.php" role="doc" />
 	  	<file name="ExcelFilterColumn.php" role="doc" />
+	  	<file name="ExcelFormControl.php" role="doc" />
 	  </dir>
 
       <dir name="tests">
@@ -180,6 +186,10 @@ Numbers, etc...
 		<file name="124-sheet-richstr.phpt" role="test" />
 		<file name="125-sheet-removepicture.phpt" role="test" />
 		<file name="126-sheet-filledrowcol.phpt" role="test" />
+		<file name="127-formcontrol-class.phpt" role="test" />
+		<file name="128-sheet-formcontrol.phpt" role="test" />
+		<file name="129-autofilter-addsort.phpt" role="test" />
+		<file name="130-formcontrol-methods.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

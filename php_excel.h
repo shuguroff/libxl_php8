@@ -116,6 +116,15 @@ typedef struct _excel_richstring_object {
 } excel_richstring_object;
 #endif
 
+#if LIBXL_VERSION >= 0x04000000
+typedef struct _excel_formcontrol_object {
+	FormControlHandle formcontrol;
+	SheetHandle sheet;
+	BookHandle book;
+	zend_object std;
+} excel_formcontrol_object;
+#endif
+
 /* ----------------------------------------------------------------
    Inline fetch functions
    ---------------------------------------------------------------- */
@@ -152,6 +161,12 @@ static inline excel_richstring_object *php_excel_richstring_object_fetch_object(
 }
 #endif
 
+#if LIBXL_VERSION >= 0x04000000
+static inline excel_formcontrol_object *php_excel_formcontrol_object_fetch_object(zend_object *obj) {
+	return (excel_formcontrol_object *)((char *)(obj) - XtOffsetOf(excel_formcontrol_object, std));
+}
+#endif
+
 /* ----------------------------------------------------------------
    Z_EXCEL_*_OBJ_P macros
    ---------------------------------------------------------------- */
@@ -168,6 +183,10 @@ static inline excel_richstring_object *php_excel_richstring_object_fetch_object(
 
 #if LIBXL_VERSION >= 0x03090000
 #define Z_EXCEL_RICHSTRING_OBJ_P(zv) php_excel_richstring_object_fetch_object(Z_OBJ_P(zv));
+#endif
+
+#if LIBXL_VERSION >= 0x04000000
+#define Z_EXCEL_FORMCONTROL_OBJ_P(zv) php_excel_formcontrol_object_fetch_object(Z_OBJ_P(zv));
 #endif
 
 /* ----------------------------------------------------------------
@@ -272,6 +291,29 @@ extern zend_class_entry *excel_ce_exception;
 	}
 #endif
 
+#if LIBXL_VERSION >= 0x04000000
+#define FORMCONTROL_FROM_OBJECT(formcontrol, object) \
+	{ \
+		excel_formcontrol_object *obj = Z_EXCEL_FORMCONTROL_OBJ_P(object); \
+		formcontrol = obj->formcontrol; \
+		if (!formcontrol) { \
+			zend_throw_exception(excel_ce_exception, "The formcontrol wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define FORMCONTROL_AND_BOOK_FROM_OBJECT(formcontrol, book, object) \
+	{ \
+		excel_formcontrol_object *obj = Z_EXCEL_FORMCONTROL_OBJ_P(object); \
+		formcontrol = obj->formcontrol; \
+		book = obj->book; \
+		if (!formcontrol) { \
+			zend_throw_exception(excel_ce_exception, "The formcontrol wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+#endif
+
 /* ----------------------------------------------------------------
    Extern declarations for class entries and object handlers
    ---------------------------------------------------------------- */
@@ -290,6 +332,10 @@ extern zend_class_entry *excel_ce_filtercolumn;
 extern zend_class_entry *excel_ce_richstring;
 #endif
 
+#if LIBXL_VERSION >= 0x04000000
+extern zend_class_entry *excel_ce_formcontrol;
+#endif
+
 extern zend_object_handlers excel_object_handlers_book;
 extern zend_object_handlers excel_object_handlers_sheet;
 extern zend_object_handlers excel_object_handlers_format;
@@ -305,6 +351,11 @@ extern zend_object_handlers excel_object_handlers_filtercolumn;
 #if LIBXL_VERSION >= 0x03090000
 extern zend_object_handlers excel_object_handlers_richstring;
 extern zend_object *excel_object_new_richstring(zend_class_entry *class_type);
+#endif
+
+#if LIBXL_VERSION >= 0x04000000
+extern zend_object_handlers excel_object_handlers_formcontrol;
+extern zend_object *excel_object_new_formcontrol(zend_class_entry *class_type);
 #endif
 
 /* ----------------------------------------------------------------
@@ -326,5 +377,8 @@ extern void excel_table_register(void);
 
 #define EXCEL_ME(class_name, function_name, arg_info, flags) \
 	PHP_ME(Excel ## class_name, function_name, arg_info, flags)
+
+#define REGISTER_EXCEL_CLASS_CONST_LONG(class_name, const_name, value) \
+	zend_declare_class_constant_long(excel_ce_ ## class_name, const_name, sizeof(const_name)-1, (long)value);
 
 #endif	/* PHP_EXCEL_H */

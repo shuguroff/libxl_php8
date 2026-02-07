@@ -1538,6 +1538,33 @@ EXCEL_METHOD(Book, setCalcMode)
 /* }}} */
 #endif
 
+#if LIBXL_VERSION >= 0x04010000
+/* {{{ proto ExcelConditionalFormat ExcelBook::addConditionalFormat()
+   Create a new conditional format */
+EXCEL_METHOD(Book, addConditionalFormat)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	ConditionalFormatHandle cf = xlBookAddConditionalFormat(book);
+	if (!cf) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_condformat(excel_ce_condformat));
+	excel_condformat_object *cfo = Z_EXCEL_CONDFORMAT_OBJ_P(return_value);
+	cfo->condformat = cf;
+	cfo->book = book;
+}
+/* }}} */
+#endif
+
 /* {{{ proto int ExcelFont::size([int size])
 	Get or set the font size */
 EXCEL_METHOD(Font, size)
@@ -3582,6 +3609,174 @@ EXCEL_METHOD(Sheet, formControl)
 	obj->formcontrol = fch;
 	obj->sheet = sheet;
 	obj->book = book;
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x04010000
+/* {{{ proto ExcelConditionalFormatting ExcelSheet::addConditionalFormatting(int rowFirst, int rowLast, int colFirst, int colLast)
+	Creates a conditional formatting object for the specified range */
+EXCEL_METHOD(Sheet, addConditionalFormatting)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long rowFirst, rowLast, colFirst, colLast;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "llll", &rowFirst, &rowLast, &colFirst, &colLast) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	ConditionalFormattingHandle cfh = xlSheetAddConditionalFormatting(sheet, (int)rowFirst, (int)rowLast, (int)colFirst, (int)colLast);
+	if (!cfh) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_condformatting(excel_ce_condformatting));
+	excel_condformatting_object *cfo = Z_EXCEL_CONDFORMATTING_OBJ_P(return_value);
+	cfo->condformatting = cfh;
+	cfo->sheet = sheet;
+	cfo->book = book;
+}
+/* }}} */
+
+/* {{{ proto array|false ExcelSheet::getActiveCell()
+	Returns the active cell as array {row, col} */
+EXCEL_METHOD(Sheet, getActiveCell)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	int row, col;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	if (!xlSheetGetActiveCell(sheet, &row, &col)) {
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	add_assoc_long(return_value, "row", row);
+	add_assoc_long(return_value, "col", col);
+}
+/* }}} */
+
+/* {{{ proto void ExcelSheet::setActiveCell(int row, int col)
+	Sets the active cell */
+EXCEL_METHOD(Sheet, setActiveCell)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long row, col;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll", &row, &col) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	xlSheetSetActiveCell(sheet, (int)row, (int)col);
+}
+/* }}} */
+
+/* {{{ proto string ExcelSheet::selectionRange()
+	Returns the selection range as a string */
+EXCEL_METHOD(Sheet, selectionRange)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	const char *result = xlSheetSelectionRange(sheet);
+	if (result) {
+		RETURN_STRING(result);
+	}
+	RETURN_EMPTY_STRING();
+}
+/* }}} */
+
+/* {{{ proto void ExcelSheet::addSelectionRange(string sqref)
+	Adds a selection range */
+EXCEL_METHOD(Sheet, addSelectionRange)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_string *sqref;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &sqref) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	xlSheetAddSelectionRange(sheet, ZSTR_VAL(sqref));
+}
+/* }}} */
+
+/* {{{ proto void ExcelSheet::removeSelection()
+	Removes all selection ranges */
+EXCEL_METHOD(Sheet, removeSelection)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	xlSheetRemoveSelection(sheet);
+}
+/* }}} */
+
+/* {{{ proto int ExcelSheet::tabColor()
+	Returns the tab color */
+EXCEL_METHOD(Sheet, tabColor)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	RETURN_LONG(xlSheetTabColor(sheet));
+}
+/* }}} */
+
+/* {{{ proto array ExcelSheet::getTabRgbColor()
+	Returns the tab RGB color as array {red, green, blue} */
+EXCEL_METHOD(Sheet, getTabRgbColor)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	int red, green, blue;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	xlSheetGetTabRgbColor(sheet, &red, &green, &blue);
+
+	array_init(return_value);
+	add_assoc_long(return_value, "red", red);
+	add_assoc_long(return_value, "green", green);
+	add_assoc_long(return_value, "blue", blue);
 }
 /* }}} */
 #endif
@@ -7224,6 +7419,42 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_addSort, 0, 0, 1)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x04010000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_addConditionalFormat, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_addConditionalFormatting, 0, 0, 4)
+	ZEND_ARG_INFO(0, rowFirst)
+	ZEND_ARG_INFO(0, rowLast)
+	ZEND_ARG_INFO(0, colFirst)
+	ZEND_ARG_INFO(0, colLast)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_getActiveCell, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_setActiveCell, 0, 0, 2)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_selectionRange, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_addSelectionRange, 0, 0, 1)
+	ZEND_ARG_INFO(0, sqref)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removeSelection, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_tabColor, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_getTabRgbColor, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -7285,6 +7516,9 @@ zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, addRichString, arginfo_Book_addRichString, 0)
 	EXCEL_ME(Book, calcMode, arginfo_Book_calcMode, 0)
 	EXCEL_ME(Book, setCalcMode, arginfo_Book_setCalcMode, 0)
+#endif
+#if LIBXL_VERSION >= 0x04010000
+	EXCEL_ME(Book, addConditionalFormat, arginfo_Book_addConditionalFormat, 0)
 #endif
 	PHP_FE_END
 };
@@ -7453,6 +7687,16 @@ zend_function_entry excel_funcs_sheet[] = {
 #if LIBXL_VERSION >= 0x04000000
 	EXCEL_ME(Sheet, formControlSize, arginfo_Sheet_formControlSize, 0)
 	EXCEL_ME(Sheet, formControl, arginfo_Sheet_formControl, 0)
+#endif
+#if LIBXL_VERSION >= 0x04010000
+	EXCEL_ME(Sheet, addConditionalFormatting, arginfo_Sheet_addConditionalFormatting, 0)
+	EXCEL_ME(Sheet, getActiveCell, arginfo_Sheet_getActiveCell, 0)
+	EXCEL_ME(Sheet, setActiveCell, arginfo_Sheet_setActiveCell, 0)
+	EXCEL_ME(Sheet, selectionRange, arginfo_Sheet_selectionRange, 0)
+	EXCEL_ME(Sheet, addSelectionRange, arginfo_Sheet_addSelectionRange, 0)
+	EXCEL_ME(Sheet, removeSelection, arginfo_Sheet_removeSelection, 0)
+	EXCEL_ME(Sheet, tabColor, arginfo_Sheet_tabColor, 0)
+	EXCEL_ME(Sheet, getTabRgbColor, arginfo_Sheet_getTabRgbColor, 0)
 #endif
 	PHP_FE_END
 };

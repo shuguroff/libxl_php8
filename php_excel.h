@@ -125,6 +125,21 @@ typedef struct _excel_formcontrol_object {
 } excel_formcontrol_object;
 #endif
 
+#if LIBXL_VERSION >= 0x04010000
+typedef struct _excel_condformat_object {
+	ConditionalFormatHandle condformat;
+	BookHandle book;
+	zend_object std;
+} excel_condformat_object;
+
+typedef struct _excel_condformatting_object {
+	ConditionalFormattingHandle condformatting;
+	SheetHandle sheet;
+	BookHandle book;
+	zend_object std;
+} excel_condformatting_object;
+#endif
+
 /* ----------------------------------------------------------------
    Inline fetch functions
    ---------------------------------------------------------------- */
@@ -167,6 +182,16 @@ static inline excel_formcontrol_object *php_excel_formcontrol_object_fetch_objec
 }
 #endif
 
+#if LIBXL_VERSION >= 0x04010000
+static inline excel_condformat_object *php_excel_condformat_object_fetch_object(zend_object *obj) {
+	return (excel_condformat_object *)((char *)(obj) - XtOffsetOf(excel_condformat_object, std));
+}
+
+static inline excel_condformatting_object *php_excel_condformatting_object_fetch_object(zend_object *obj) {
+	return (excel_condformatting_object *)((char *)(obj) - XtOffsetOf(excel_condformatting_object, std));
+}
+#endif
+
 /* ----------------------------------------------------------------
    Z_EXCEL_*_OBJ_P macros
    ---------------------------------------------------------------- */
@@ -187,6 +212,11 @@ static inline excel_formcontrol_object *php_excel_formcontrol_object_fetch_objec
 
 #if LIBXL_VERSION >= 0x04000000
 #define Z_EXCEL_FORMCONTROL_OBJ_P(zv) php_excel_formcontrol_object_fetch_object(Z_OBJ_P(zv));
+#endif
+
+#if LIBXL_VERSION >= 0x04010000
+#define Z_EXCEL_CONDFORMAT_OBJ_P(zv) php_excel_condformat_object_fetch_object(Z_OBJ_P(zv));
+#define Z_EXCEL_CONDFORMATTING_OBJ_P(zv) php_excel_condformatting_object_fetch_object(Z_OBJ_P(zv));
 #endif
 
 /* ----------------------------------------------------------------
@@ -314,6 +344,50 @@ extern zend_class_entry *excel_ce_exception;
 	}
 #endif
 
+#if LIBXL_VERSION >= 0x04010000
+#define CONDFORMAT_FROM_OBJECT(condformat, object) \
+	{ \
+		excel_condformat_object *obj = Z_EXCEL_CONDFORMAT_OBJ_P(object); \
+		condformat = obj->condformat; \
+		if (!condformat) { \
+			zend_throw_exception(excel_ce_exception, "The conditional format wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define CONDFORMAT_AND_BOOK_FROM_OBJECT(condformat, book, object) \
+	{ \
+		excel_condformat_object *obj = Z_EXCEL_CONDFORMAT_OBJ_P(object); \
+		condformat = obj->condformat; \
+		book = obj->book; \
+		if (!condformat) { \
+			zend_throw_exception(excel_ce_exception, "The conditional format wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define CONDFORMATTING_FROM_OBJECT(condformatting, object) \
+	{ \
+		excel_condformatting_object *obj = Z_EXCEL_CONDFORMATTING_OBJ_P(object); \
+		condformatting = obj->condformatting; \
+		if (!condformatting) { \
+			zend_throw_exception(excel_ce_exception, "The conditional formatting wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define CONDFORMATTING_AND_BOOK_FROM_OBJECT(condformatting, book, object) \
+	{ \
+		excel_condformatting_object *obj = Z_EXCEL_CONDFORMATTING_OBJ_P(object); \
+		condformatting = obj->condformatting; \
+		book = obj->book; \
+		if (!condformatting) { \
+			zend_throw_exception(excel_ce_exception, "The conditional formatting wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+#endif
+
 /* ----------------------------------------------------------------
    Extern declarations for class entries and object handlers
    ---------------------------------------------------------------- */
@@ -336,6 +410,11 @@ extern zend_class_entry *excel_ce_richstring;
 extern zend_class_entry *excel_ce_formcontrol;
 #endif
 
+#if LIBXL_VERSION >= 0x04010000
+extern zend_class_entry *excel_ce_condformat;
+extern zend_class_entry *excel_ce_condformatting;
+#endif
+
 extern zend_object_handlers excel_object_handlers_book;
 extern zend_object_handlers excel_object_handlers_sheet;
 extern zend_object_handlers excel_object_handlers_format;
@@ -356,6 +435,13 @@ extern zend_object *excel_object_new_richstring(zend_class_entry *class_type);
 #if LIBXL_VERSION >= 0x04000000
 extern zend_object_handlers excel_object_handlers_formcontrol;
 extern zend_object *excel_object_new_formcontrol(zend_class_entry *class_type);
+#endif
+
+#if LIBXL_VERSION >= 0x04010000
+extern zend_object_handlers excel_object_handlers_condformat;
+extern zend_object_handlers excel_object_handlers_condformatting;
+extern zend_object *excel_object_new_condformat(zend_class_entry *class_type);
+extern zend_object *excel_object_new_condformatting(zend_class_entry *class_type);
 #endif
 
 /* ----------------------------------------------------------------

@@ -190,6 +190,12 @@ Numbers, etc...
 		<file name="128-sheet-formcontrol.phpt" role="test" />
 		<file name="129-autofilter-addsort.phpt" role="test" />
 		<file name="130-formcontrol-methods.phpt" role="test" />
+		<file name="131-condformat-class.phpt" role="test" />
+		<file name="132-condformatting-class.phpt" role="test" />
+		<file name="133-condformat-props.phpt" role="test" />
+		<file name="134-condformatting-rules.phpt" role="test" />
+		<file name="135-sheet-activecell-selection.phpt" role="test" />
+		<file name="136-sheet-tabcolor.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

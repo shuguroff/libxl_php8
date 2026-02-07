@@ -1,0 +1,15 @@
+001+ bool(false)
+     bool(true)
+002- bool(true)
+003- bool(true)
+004- bool(true)
+005- bool(true)
+006- bool(true)
+007- ExcelException: Invalid row or column number
+008- OK
+003+ 
+004+ Fatal error: Uncaught ExcelException: Failed to read cell in row 0, column 0 with error 'can't get access to format in row 0 in trial version' in /Users/maximshugurov/Projects/LibXL/libxl_php8/tests/121-sheet-writestrAsnum.php:15
+005+ Stack trace:
+006+ #0 /Users/maximshugurov/Projects/LibXL/libxl_php8/tests/121-sheet-writestrAsnum.php(15): ExcelSheet->read(0, 0)
+007+ #1 {main}
+008+   thrown in /Users/maximshugurov/Projects/LibXL/libxl_php8/tests/121-sheet-writestrAsnum.php on line 15

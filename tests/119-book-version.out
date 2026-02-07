@@ -1,0 +1,11 @@
+bool(true)
+bool(true)
+bool(true)
+bool(true)
+bool(true)
+
+Fatal error: Uncaught ExcelException: Failed to write cell in row 0, column 0 with error 'can't write row 0 in trial version' in /Users/maximshugurov/Projects/LibXL/libxl_php8/tests/119-book-version.php:21
+Stack trace:
+#0 /Users/maximshugurov/Projects/LibXL/libxl_php8/tests/119-book-version.php(21): ExcelSheet->write(0, 0, 'Hello')
+#1 {main}
+  thrown in /Users/maximshugurov/Projects/LibXL/libxl_php8/tests/119-book-version.php on line 21

@@ -67,13 +67,264 @@ typedef bool zend_bool;
 # define PHP_FE_END {NULL, NULL, NULL}
 #endif
 
-#endif	/* PHP_EXCEL_H */
+/* ----------------------------------------------------------------
+   Object structures
+   ---------------------------------------------------------------- */
 
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * End:
- * vim600: noet sw=4 ts=4 fdm=marker
- * vim<600: noet sw=4 ts=4
- */
+typedef struct _excel_book_object {
+	BookHandle book;
+	zend_object std;
+} excel_book_object;
+
+typedef struct _excel_sheet_object {
+	SheetHandle	sheet;
+	BookHandle book;
+	zend_object std;
+} excel_sheet_object;
+
+typedef struct _excel_font_object {
+	FontHandle font;
+	BookHandle book;
+	zend_object std;
+} excel_font_object;
+
+typedef struct _excel_format_object {
+	FormatHandle format;
+	BookHandle book;
+	zend_object std;
+} excel_format_object;
+
+#if LIBXL_VERSION >= 0x03070000
+typedef struct _excel_autofilter_object {
+	AutoFilterHandle autofilter;
+	SheetHandle sheet;
+	zend_object std;
+} excel_autofilter_object;
+
+typedef struct _excel_filtercolumn_object {
+	FilterColumnHandle filtercolumn;
+	AutoFilterHandle autofilter;
+	zend_object std;
+} excel_filtercolumn_object;
+#endif
+
+#if LIBXL_VERSION >= 0x03090000
+typedef struct _excel_richstring_object {
+	RichStringHandle richstring;
+	BookHandle book;
+	zend_object std;
+} excel_richstring_object;
+#endif
+
+/* ----------------------------------------------------------------
+   Inline fetch functions
+   ---------------------------------------------------------------- */
+
+static inline excel_book_object *php_excel_book_object_fetch_object(zend_object *obj) {
+	return (excel_book_object *)((char *)(obj) - XtOffsetOf(excel_book_object, std));
+}
+
+static inline excel_sheet_object *php_excel_sheet_object_fetch_object(zend_object *obj) {
+	return (excel_sheet_object *)((char *)(obj) - XtOffsetOf(excel_sheet_object, std));
+}
+
+static inline excel_font_object *php_excel_font_object_fetch_object(zend_object *obj) {
+	return (excel_font_object *)((char *)(obj) - XtOffsetOf(excel_font_object, std));
+}
+
+static inline excel_format_object *php_excel_format_object_fetch_object(zend_object *obj) {
+	return (excel_format_object *)((char *)(obj) - XtOffsetOf(excel_format_object, std));
+}
+
+#if LIBXL_VERSION >= 0x03070000
+static inline excel_autofilter_object *php_excel_autofilter_object_fetch_object(zend_object *obj) {
+	return (excel_autofilter_object *)((char *)(obj) - XtOffsetOf(excel_autofilter_object, std));
+}
+
+static inline excel_filtercolumn_object *php_excel_filtercolumn_object_fetch_object(zend_object *obj) {
+	return (excel_filtercolumn_object *)((char *)(obj) - XtOffsetOf(excel_filtercolumn_object, std));
+}
+#endif
+
+#if LIBXL_VERSION >= 0x03090000
+static inline excel_richstring_object *php_excel_richstring_object_fetch_object(zend_object *obj) {
+	return (excel_richstring_object *)((char *)(obj) - XtOffsetOf(excel_richstring_object, std));
+}
+#endif
+
+/* ----------------------------------------------------------------
+   Z_EXCEL_*_OBJ_P macros
+   ---------------------------------------------------------------- */
+
+#define Z_EXCEL_BOOK_OBJ_P(zv) php_excel_book_object_fetch_object(Z_OBJ_P(zv));
+#define Z_EXCEL_SHEET_OBJ_P(zv) php_excel_sheet_object_fetch_object(Z_OBJ_P(zv));
+#define Z_EXCEL_FONT_OBJ_P(zv) php_excel_font_object_fetch_object(Z_OBJ_P(zv));
+#define Z_EXCEL_FORMAT_OBJ_P(zv) php_excel_format_object_fetch_object(Z_OBJ_P(zv));
+
+#if LIBXL_VERSION >= 0x03070000
+#define Z_EXCEL_AUTOFILTER_OBJ_P(zv) php_excel_autofilter_object_fetch_object(Z_OBJ_P(zv));
+#define Z_EXCEL_FILTERCOLUMN_OBJ_P(zv) php_excel_filtercolumn_object_fetch_object(Z_OBJ_P(zv));
+#endif
+
+#if LIBXL_VERSION >= 0x03090000
+#define Z_EXCEL_RICHSTRING_OBJ_P(zv) php_excel_richstring_object_fetch_object(Z_OBJ_P(zv));
+#endif
+
+/* ----------------------------------------------------------------
+   *_FROM_OBJECT macros (require zend_exceptions.h)
+   ---------------------------------------------------------------- */
+
+extern zend_class_entry *excel_ce_exception;
+
+#define BOOK_FROM_OBJECT(book, object) \
+	{ \
+		excel_book_object *obj = Z_EXCEL_BOOK_OBJ_P(object); \
+		book = obj->book; \
+		if (!book) { \
+			zend_throw_exception(excel_ce_exception, "The book wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define SHEET_FROM_OBJECT(sheet, object) \
+	{ \
+		excel_sheet_object *obj = Z_EXCEL_SHEET_OBJ_P(object); \
+		sheet = obj->sheet; \
+		if (!sheet) { \
+			zend_throw_exception(excel_ce_exception, "The sheet wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object) \
+	{ \
+		excel_sheet_object *obj = Z_EXCEL_SHEET_OBJ_P(object); \
+		sheet = obj->sheet; \
+		book = obj->book; \
+		if (!sheet) { \
+			zend_throw_exception(excel_ce_exception, "The sheet wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define FONT_FROM_OBJECT(font, object) \
+	{ \
+		excel_font_object *obj = Z_EXCEL_FONT_OBJ_P(object); \
+		font = obj->font; \
+		if (!font) { \
+			zend_throw_exception(excel_ce_exception, "The font wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define FORMAT_FROM_OBJECT(format, object) \
+	{ \
+		excel_format_object *obj = Z_EXCEL_FORMAT_OBJ_P(object); \
+		format = obj->format; \
+		if (!format) { \
+			zend_throw_exception(excel_ce_exception, "The format wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#if LIBXL_VERSION >= 0x03070000
+#define AUTOFILTER_FROM_OBJECT(autofilter, object) \
+	{ \
+		excel_autofilter_object *obj = Z_EXCEL_AUTOFILTER_OBJ_P(object); \
+		autofilter = obj->autofilter; \
+		if (!autofilter) { \
+			zend_throw_exception(excel_ce_exception, "The autofilter wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define FILTERCOLUMN_FROM_OBJECT(filtercolumn, object) \
+	{ \
+		excel_filtercolumn_object *obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(object); \
+		filtercolumn = obj->filtercolumn; \
+		if (!filtercolumn) { \
+			zend_throw_exception(excel_ce_exception, "The filtercolumn wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+#endif
+
+#if LIBXL_VERSION >= 0x03090000
+#define RICHSTRING_FROM_OBJECT(richstring, object) \
+	{ \
+		excel_richstring_object *obj = Z_EXCEL_RICHSTRING_OBJ_P(object); \
+		richstring = obj->richstring; \
+		if (!richstring) { \
+			zend_throw_exception(excel_ce_exception, "The richstring wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define RICHSTRING_AND_BOOK_FROM_OBJECT(richstring, book, object) \
+	{ \
+		excel_richstring_object *obj = Z_EXCEL_RICHSTRING_OBJ_P(object); \
+		richstring = obj->richstring; \
+		book = obj->book; \
+		if (!richstring) { \
+			zend_throw_exception(excel_ce_exception, "The richstring wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+#endif
+
+/* ----------------------------------------------------------------
+   Extern declarations for class entries and object handlers
+   ---------------------------------------------------------------- */
+
+extern zend_class_entry *excel_ce_book;
+extern zend_class_entry *excel_ce_sheet;
+extern zend_class_entry *excel_ce_format;
+extern zend_class_entry *excel_ce_font;
+
+#if LIBXL_VERSION >= 0x03070000
+extern zend_class_entry *excel_ce_autofilter;
+extern zend_class_entry *excel_ce_filtercolumn;
+#endif
+
+#if LIBXL_VERSION >= 0x03090000
+extern zend_class_entry *excel_ce_richstring;
+#endif
+
+extern zend_object_handlers excel_object_handlers_book;
+extern zend_object_handlers excel_object_handlers_sheet;
+extern zend_object_handlers excel_object_handlers_format;
+extern zend_object_handlers excel_object_handlers_font;
+
+extern zend_object *excel_object_new_font(zend_class_entry *class_type);
+
+#if LIBXL_VERSION >= 0x03070000
+extern zend_object_handlers excel_object_handlers_autofilter;
+extern zend_object_handlers excel_object_handlers_filtercolumn;
+#endif
+
+#if LIBXL_VERSION >= 0x03090000
+extern zend_object_handlers excel_object_handlers_richstring;
+extern zend_object *excel_object_new_richstring(zend_class_entry *class_type);
+#endif
+
+/* ----------------------------------------------------------------
+   Registration functions for new classes (defined in separate .c files)
+   ---------------------------------------------------------------- */
+
+extern void excel_richstring_register(void);
+extern void excel_formcontrol_register(void);
+extern void excel_condformat_register(void);
+extern void excel_coreprops_register(void);
+extern void excel_table_register(void);
+
+/* ----------------------------------------------------------------
+   Shared macros for method/class definitions
+   ---------------------------------------------------------------- */
+
+#define EXCEL_METHOD(class_name, function_name) \
+	PHP_METHOD(Excel ## class_name, function_name)
+
+#define EXCEL_ME(class_name, function_name, arg_info, flags) \
+	PHP_ME(Excel ## class_name, function_name, arg_info, flags)
+
+#endif	/* PHP_EXCEL_H */

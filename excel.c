@@ -97,155 +97,13 @@ zend_class_entry *excel_ce_book, *excel_ce_sheet, *excel_ce_format, *excel_ce_fo
 #endif
 zend_class_entry *excel_ce_exception;
 
-static zend_object_handlers excel_object_handlers_book;
-static zend_object_handlers excel_object_handlers_sheet;
-static zend_object_handlers excel_object_handlers_format;
-static zend_object_handlers excel_object_handlers_font;
+zend_object_handlers excel_object_handlers_book;
+zend_object_handlers excel_object_handlers_sheet;
+zend_object_handlers excel_object_handlers_format;
+zend_object_handlers excel_object_handlers_font;
 #if LIBXL_VERSION >= 0x03070000
-static zend_object_handlers excel_object_handlers_autofilter;
-static zend_object_handlers excel_object_handlers_filtercolumn;
-#endif
-
-typedef struct _excel_book_object {
-	BookHandle book;
-	zend_object std;
-} excel_book_object;
-
-static inline excel_book_object *php_excel_book_object_fetch_object(zend_object *obj) {
-	return (excel_book_object *)((char *)(obj) - XtOffsetOf(excel_book_object, std));
-}
-
-#define Z_EXCEL_BOOK_OBJ_P(zv) php_excel_book_object_fetch_object(Z_OBJ_P(zv));
-
-#define BOOK_FROM_OBJECT(book, object) \
-	{ \
-		excel_book_object *obj = Z_EXCEL_BOOK_OBJ_P(object); \
-		book = obj->book; \
-		if (!book) { \
-			zend_throw_exception(excel_ce_exception, "The book wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-
-typedef struct _excel_sheet_object {
-	SheetHandle	sheet;
-	BookHandle book;
-	zend_object std;
-} excel_sheet_object;
-
-static inline excel_sheet_object *php_excel_sheet_object_fetch_object(zend_object *obj) {
-	return (excel_sheet_object *)((char *)(obj) - XtOffsetOf(excel_sheet_object, std));
-}
-
-#define Z_EXCEL_SHEET_OBJ_P(zv) php_excel_sheet_object_fetch_object(Z_OBJ_P(zv));
-
-#define SHEET_FROM_OBJECT(sheet, object) \
-	{ \
-		excel_sheet_object *obj = Z_EXCEL_SHEET_OBJ_P(object); \
-		sheet = obj->sheet; \
-		if (!sheet) { \
-			zend_throw_exception(excel_ce_exception, "The sheet wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-
-#define SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object) \
-	{ \
-		excel_sheet_object *obj = Z_EXCEL_SHEET_OBJ_P(object); \
-		sheet = obj->sheet; \
-		book = obj->book; \
-		if (!sheet) { \
-			zend_throw_exception(excel_ce_exception, "The sheet wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-
-typedef struct _excel_font_object {
-	FontHandle font;
-	BookHandle book;
-	zend_object std;
-} excel_font_object;
-
-static inline excel_font_object *php_excel_font_object_fetch_object(zend_object *obj) {
-	return (excel_font_object *)((char *)(obj) - XtOffsetOf(excel_font_object, std));
-}
-#define Z_EXCEL_FONT_OBJ_P(zv) php_excel_font_object_fetch_object(Z_OBJ_P(zv));
-
-#define FONT_FROM_OBJECT(font, object) \
-	{ \
-		excel_font_object *obj = Z_EXCEL_FONT_OBJ_P(object); \
-		font = obj->font; \
-		if (!font) { \
-			zend_throw_exception(excel_ce_exception, "The font wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-
-#define FORMAT_FROM_OBJECT(format, object) \
-	{ \
-		excel_format_object *obj = Z_EXCEL_FORMAT_OBJ_P(object); \
-		format = obj->format; \
-		if (!format) { \
-			zend_throw_exception(excel_ce_exception, "The format wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-
-#if LIBXL_VERSION >= 0x03070000
-#define AUTOFILTER_FROM_OBJECT(autofilter, object) \
-	{ \
-		excel_autofilter_object *obj = Z_EXCEL_AUTOFILTER_OBJ_P(object); \
-		autofilter = obj->autofilter; \
-		if (!autofilter) { \
-			zend_throw_exception(excel_ce_exception, "The autofilter wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-
-#define FILTERCOLUMN_FROM_OBJECT(filtercolumn, object) \
-	{ \
-		excel_filtercolumn_object *obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(object); \
-		filtercolumn = obj->filtercolumn; \
-		if (!filtercolumn) { \
-			zend_throw_exception(excel_ce_exception, "The filtercolumn wasn't initialized", 0); \
-			RETURN_THROWS(); \
-		} \
-	}
-#endif
-
-typedef struct _excel_format_object {
-	FormatHandle format;
-	BookHandle book;
-	zend_object std;
-} excel_format_object;
-
-static inline excel_format_object *php_excel_format_object_fetch_object(zend_object *obj) {
-	return (excel_format_object *)((char *)(obj) - XtOffsetOf(excel_format_object, std));
-}
-#define Z_EXCEL_FORMAT_OBJ_P(zv) php_excel_format_object_fetch_object(Z_OBJ_P(zv));
-
-#if LIBXL_VERSION >= 0x03070000
-typedef struct _excel_autofilter_object {
-	AutoFilterHandle autofilter;
-	SheetHandle sheet;
-	zend_object std;
-} excel_autofilter_object;
-
-static inline excel_autofilter_object *php_excel_autofilter_object_fetch_object(zend_object *obj) {
-	return (excel_autofilter_object *)((char *)(obj) - XtOffsetOf(excel_autofilter_object, std));
-}
-#define Z_EXCEL_AUTOFILTER_OBJ_P(zv) php_excel_autofilter_object_fetch_object(Z_OBJ_P(zv));
-
-typedef struct _excel_filtercolumn_object {
-	FilterColumnHandle filtercolumn;
-	AutoFilterHandle autofilter;
-	zend_object std;
-} excel_filtercolumn_object;
-
-static inline excel_filtercolumn_object *php_excel_filtercolumn_object_fetch_object(zend_object *obj) {
-	return (excel_filtercolumn_object *)((char *)(obj) - XtOffsetOf(excel_filtercolumn_object, std));
-}
-#define Z_EXCEL_FILTERCOLUMN_OBJ_P(zv) php_excel_filtercolumn_object_fetch_object(Z_OBJ_P(zv));
+zend_object_handlers excel_object_handlers_autofilter;
+zend_object_handlers excel_object_handlers_filtercolumn;
 #endif
 
 static void excel_book_object_free_storage(zend_object *object)
@@ -336,7 +194,7 @@ static zend_object *excel_object_new_font_ex(zend_class_entry *class_type, excel
 	return &intern->std;
 }
 
-static zend_object *excel_object_new_font(zend_class_entry *class_type)
+zend_object *excel_object_new_font(zend_class_entry *class_type)
 {
 	return excel_object_new_font_ex(class_type, NULL);
 }
@@ -501,9 +359,6 @@ static zend_object *excel_object_new_filtercolumn(zend_class_entry *class_type)
 	return excel_object_new_filtercolumn_ex(class_type, NULL);
 }
 #endif
-
-#define EXCEL_METHOD(class_name, function_name) \
-	PHP_METHOD(Excel ## class_name, function_name)
 
 #define EXCEL_NON_EMPTY_STRING(string_zval) \
 	if (!string_zval || ZSTR_LEN(string_zval) < 1) {	\
@@ -1564,6 +1419,122 @@ EXCEL_METHOD(Book, getSheetName)
 		RETURN_FALSE;
 	}
 	RETURN_STRING(data);
+}
+/* }}} */
+#endif
+
+/* {{{ proto int ExcelBook::version()
+	Returns the version of the linked LibXL library. */
+EXCEL_METHOD(Book, version)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (ZEND_NUM_ARGS()) {
+		RETURN_FALSE;
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_LONG(xlBookVersion(book));
+}
+/* }}} */
+
+/* {{{ proto bool ExcelBook::isWriteProtected()
+	Returns whether the workbook is write-protected. */
+EXCEL_METHOD(Book, isWriteProtected)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (ZEND_NUM_ARGS()) {
+		RETURN_FALSE;
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_BOOL(xlBookIsWriteProtected(book));
+}
+/* }}} */
+
+/* {{{ proto bool ExcelBook::loadWithoutEmptyCells(string filename)
+	Loads a file ignoring empty cells. Returns false if error occurs. */
+EXCEL_METHOD(Book, loadWithoutEmptyCells)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_string *filename_zs = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &filename_zs) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	EXCEL_NON_EMPTY_STRING(filename_zs)
+
+	BOOK_FROM_OBJECT(book, object);
+
+	RETURN_BOOL(xlBookLoadWithoutEmptyCells(book, ZSTR_VAL(filename_zs)));
+}
+/* }}} */
+
+#if LIBXL_VERSION >= 0x03090000
+/* {{{ proto ExcelRichString ExcelBook::addRichString()
+   Create a new rich string */
+EXCEL_METHOD(Book, addRichString)
+{
+	BookHandle book;
+	zval *object = getThis();
+	RichStringHandle rs;
+	excel_richstring_object *rso;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	rs = xlBookAddRichString(book);
+	if (!rs) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_richstring(excel_ce_richstring));
+	rso = Z_EXCEL_RICHSTRING_OBJ_P(return_value);
+	rso->richstring = rs;
+	rso->book = book;
+}
+/* }}} */
+
+/* {{{ proto int ExcelBook::calcMode()
+   Get the calculation mode */
+EXCEL_METHOD(Book, calcMode)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	RETURN_LONG(xlBookCalcMode(book));
+}
+/* }}} */
+
+/* {{{ proto void ExcelBook::setCalcMode(int mode)
+   Set the calculation mode */
+EXCEL_METHOD(Book, setCalcMode)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_long mode;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &mode) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	xlBookSetCalcMode(book, (int)mode);
 }
 /* }}} */
 #endif
@@ -2915,6 +2886,196 @@ EXCEL_METHOD(Sheet, rowHeightPx)
 
 	SHEET_FROM_OBJECT(sheet, object);
 	RETURN_LONG(xlSheetRowHeightPx(sheet, row));
+}
+/* }}} */
+#endif
+
+/* {{{ proto float ExcelSheet::defaultRowHeight()
+	Returns the default row height measured in characters. */
+EXCEL_METHOD(Sheet, defaultRowHeight)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+
+	if (ZEND_NUM_ARGS()) {
+		RETURN_FALSE;
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	/* Workaround for LibXL bug: xlSheetDefaultRowHeight() crashes on XLSX
+	   sheets where setDefaultRowHeight() was never called. Initialize the
+	   internal field first using the actual row height of row 0. */
+	if (xlBookBiffVersion(book) == 0) {
+		xlSheetSetDefaultRowHeight(sheet, xlSheetRowHeight(sheet, 0));
+	}
+
+	RETURN_DOUBLE(xlSheetDefaultRowHeight(sheet));
+}
+/* }}} */
+
+/* {{{ proto void ExcelSheet::setDefaultRowHeight(float height)
+	Sets the default row height measured in characters. */
+EXCEL_METHOD(Sheet, setDefaultRowHeight)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	double height;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "d", &height) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	xlSheetSetDefaultRowHeight(sheet, height);
+}
+/* }}} */
+
+/* {{{ proto bool ExcelSheet::writeStrAsNum(int row, int col, string value[, ExcelFormat format])
+	Writes a string value into a cell as a number. Returns false if error occurs. */
+EXCEL_METHOD(Sheet, writeStrAsNum)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long row, col;
+	zend_string *value;
+	zval *oformat = NULL;
+	FormatHandle format = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "llS|O!", &row, &col, &value, &oformat, excel_ce_format) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	if (oformat) {
+		FORMAT_FROM_OBJECT(format, oformat);
+	}
+
+	if (row < 0 || col < 0) {
+		zend_throw_exception(excel_ce_exception, "Invalid row or column number", 0);
+		RETURN_THROWS();
+	}
+
+	RETURN_BOOL(xlSheetWriteStrAsNum(sheet, row, col, ZSTR_VAL(value), format));
+}
+/* }}} */
+
+#if LIBXL_VERSION >= 0x03090000
+/* {{{ proto bool ExcelSheet::isRichStr(int row, int col)
+   Check if a cell contains a rich string */
+EXCEL_METHOD(Sheet, isRichStr)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long row, col;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll", &row, &col) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	RETURN_BOOL(xlSheetIsRichStr(sheet, (int)row, (int)col));
+}
+/* }}} */
+
+/* {{{ proto ExcelRichString|false ExcelSheet::readRichStr(int row, int col)
+   Read a rich string from a cell */
+EXCEL_METHOD(Sheet, readRichStr)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long row, col;
+	RichStringHandle rs;
+	FormatHandle format = NULL;
+	excel_richstring_object *rso;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll", &row, &col) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	rs = xlSheetReadRichStr(sheet, (int)row, (int)col, &format);
+	if (!rs) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_richstring(excel_ce_richstring));
+	rso = Z_EXCEL_RICHSTRING_OBJ_P(return_value);
+	rso->richstring = rs;
+	rso->book = book;
+}
+/* }}} */
+
+/* {{{ proto bool ExcelSheet::writeRichStr(int row, int col, ExcelRichString richString[, ExcelFormat format])
+   Write a rich string to a cell */
+EXCEL_METHOD(Sheet, writeRichStr)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long row, col;
+	zval *zrs;
+	zval *oformat = NULL;
+	RichStringHandle richstring;
+	FormatHandle format = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "llO|O!", &row, &col, &zrs, excel_ce_richstring, &oformat, excel_ce_format) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	RICHSTRING_FROM_OBJECT(richstring, zrs);
+
+	if (oformat) {
+		FORMAT_FROM_OBJECT(format, oformat);
+	}
+
+	if (row < 0 || col < 0) {
+		zend_throw_exception(excel_ce_exception, "Invalid row or column number", 0);
+		RETURN_THROWS();
+	}
+
+	RETURN_BOOL(xlSheetWriteRichStr(sheet, (int)row, (int)col, richstring, format));
+}
+/* }}} */
+
+/* {{{ proto bool ExcelSheet::removePicture(int row, int col)
+   Remove picture at the given position */
+EXCEL_METHOD(Sheet, removePicture)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long row, col;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll", &row, &col) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	RETURN_BOOL(xlSheetRemovePicture(sheet, (int)row, (int)col));
+}
+/* }}} */
+
+/* {{{ proto bool ExcelSheet::removePictureByIndex(int index)
+   Remove picture by its index */
+EXCEL_METHOD(Sheet, removePictureByIndex)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long index;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	RETURN_BOOL(xlSheetRemovePictureByIndex(sheet, (int)index));
 }
 /* }}} */
 #endif
@@ -5964,6 +6125,28 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_getSheetName, 0, 0, 1)
 ZEND_END_ARG_INFO()
 #endif
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_version, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_isWriteProtected, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_loadWithoutEmptyCells, 0, 0, 1)
+	ZEND_ARG_INFO(0, filename)
+ZEND_END_ARG_INFO()
+
+#if LIBXL_VERSION >= 0x03090000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_addRichString, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_calcMode, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_setCalcMode, 0, 0, 1)
+	ZEND_ARG_INFO(0, mode)
+ZEND_END_ARG_INFO()
+#endif
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_Font_size, 0, 0, 0)
 	ZEND_ARG_INFO(0, size)
 ZEND_END_ARG_INFO()
@@ -6864,8 +7047,47 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_rowHeightPx, 0, 0, 1)
 ZEND_END_ARG_INFO()
 #endif
 
-#define EXCEL_ME(class_name, function_name, arg_info, flags) \
-	PHP_ME(Excel ## class_name, function_name, arg_info, flags)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_defaultRowHeight, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_setDefaultRowHeight, 0, 0, 1)
+	ZEND_ARG_INFO(0, height)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_writeStrAsNum, 0, 0, 3)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+	ZEND_ARG_INFO(0, value)
+	ZEND_ARG_OBJ_INFO(0, format, ExcelFormat, 1)
+ZEND_END_ARG_INFO()
+
+#if LIBXL_VERSION >= 0x03090000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_isRichStr, 0, 0, 2)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_readRichStr, 0, 0, 2)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_writeRichStr, 0, 0, 3)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+	ZEND_ARG_OBJ_INFO(0, richString, ExcelRichString, 0)
+	ZEND_ARG_OBJ_INFO(0, format, ExcelFormat, 1)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removePicture, 0, 0, 2)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removePictureByIndex, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+#endif
 
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -6920,6 +7142,14 @@ zend_function_entry excel_funcs_book[] = {
 #if LIBXL_VERSION >= 0x03080300
 	EXCEL_ME(Book, loadInfo, arginfo_Book_loadInfo, 0)
 	EXCEL_ME(Book, getSheetName, arginfo_Book_getSheetName, 0)
+#endif
+	EXCEL_ME(Book, version, arginfo_Book_version, 0)
+	EXCEL_ME(Book, isWriteProtected, arginfo_Book_isWriteProtected, 0)
+	EXCEL_ME(Book, loadWithoutEmptyCells, arginfo_Book_loadWithoutEmptyCells, 0)
+#if LIBXL_VERSION >= 0x03090000
+	EXCEL_ME(Book, addRichString, arginfo_Book_addRichString, 0)
+	EXCEL_ME(Book, calcMode, arginfo_Book_calcMode, 0)
+	EXCEL_ME(Book, setCalcMode, arginfo_Book_setCalcMode, 0)
 #endif
 	PHP_FE_END
 };
@@ -7068,6 +7298,16 @@ zend_function_entry excel_funcs_sheet[] = {
 #if LIBXL_VERSION >= 0x03080600
 	EXCEL_ME(Sheet, colWidthPx, arginfo_Sheet_colWidthPx, 0)
 	EXCEL_ME(Sheet, rowHeightPx, arginfo_Sheet_rowHeightPx, 0)
+#endif
+	EXCEL_ME(Sheet, defaultRowHeight, arginfo_Sheet_defaultRowHeight, 0)
+	EXCEL_ME(Sheet, setDefaultRowHeight, arginfo_Sheet_setDefaultRowHeight, 0)
+	EXCEL_ME(Sheet, writeStrAsNum, arginfo_Sheet_writeStrAsNum, 0)
+#if LIBXL_VERSION >= 0x03090000
+	EXCEL_ME(Sheet, isRichStr, arginfo_Sheet_isRichStr, 0)
+	EXCEL_ME(Sheet, readRichStr, arginfo_Sheet_readRichStr, 0)
+	EXCEL_ME(Sheet, writeRichStr, arginfo_Sheet_writeRichStr, 0)
+	EXCEL_ME(Sheet, removePicture, arginfo_Sheet_removePicture, 0)
+	EXCEL_ME(Sheet, removePictureByIndex, arginfo_Sheet_removePictureByIndex, 0)
 #endif
 	PHP_FE_END
 };
@@ -7486,6 +7726,18 @@ PHP_MINIT_FUNCTION(excel)
 	REGISTER_EXCEL_CLASS_CONST_LONG(sheet, "VALIDATION_ERRSTYLE_WARNING", VALIDATION_ERRSTYLE_WARNING);
 	REGISTER_EXCEL_CLASS_CONST_LONG(sheet, "VALIDATION_ERRSTYLE_INFORMATION", VALIDATION_ERRSTYLE_INFORMATION);
 #endif
+
+#if LIBXL_VERSION >= 0x03090000
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CALCMODE_MANUAL", CALCMODE_MANUAL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CALCMODE_AUTO", CALCMODE_AUTO);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CALCMODE_AUTONOTABLE", CALCMODE_AUTONOTABLE);
+#endif
+
+	excel_richstring_register();
+	excel_formcontrol_register();
+	excel_condformat_register();
+	excel_coreprops_register();
+	excel_table_register();
 
 	return SUCCESS;
 }

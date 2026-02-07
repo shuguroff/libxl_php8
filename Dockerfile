@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Копирование LibXL (должен быть скачан вручную с libxl.com)
-# Ожидается структура: libxl/include_c/ и libxl/lib64/
-COPY libxl /opt/libxl
+# Ожидается структура: libxl-5.1.0/include_c/ и libxl-5.1.0/lib64/
+COPY libxl-5.1.0 /opt/libxl
 
 # Настройка путей к библиотеке
 RUN ln -sf /opt/libxl/lib64/libxl.so /usr/lib/libxl.so && ldconfig
@@ -35,8 +35,9 @@ WORKDIR /usr/src/libxl_php8
 COPY . .
 
 # Удаляем артефакты локальной сборки (могут содержать абсолютные пути хоста)
+# Исключаем libxl* директории, чтобы не удалить libxl.so из библиотеки
 RUN rm -f Makefile Makefile.objects Makefile.fragments config.h config.log config.status libtool excel.dep \
-    && find . \( -name '*.lo' -o -name '*.o' -o -name '*.la' -o -name '*.so' -o -name '*.dep' \) -exec rm -f {} + \
+    && find . -not -path './libxl*' \( -name '*.lo' -o -name '*.o' -o -name '*.la' -o -name '*.so' -o -name '*.dep' \) -exec rm -f {} + \
     && rm -rf .libs modules autom4te.cache
 
 # Сборка расширения

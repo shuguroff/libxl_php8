@@ -101,5 +101,5 @@ if test "$PHP_EXCEL" != "no"; then
   fi
 
   PHP_SUBST(EXCEL_SHARED_LIBADD)
-  PHP_NEW_EXTENSION(excel, excel.c, $ext_shared)
+  PHP_NEW_EXTENSION(excel, excel.c excel_richstring.c excel_formcontrol.c excel_condformat.c excel_coreprops.c excel_table.c, $ext_shared)
 fi

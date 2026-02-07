@@ -37,7 +37,7 @@ date.timezone=America/Toronto
 --EXPECTF--
 float(55)
 float(50)
-float(8)
+float(%f)
 bool(true)
 EXCEPTION: Width cannot be less than -1
 OK

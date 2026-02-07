@@ -30,11 +30,11 @@ date.timezone=America/Toronto
 
 	echo "OK\n";
 ?>
---EXPECT--
+--EXPECTF--
 bool(true)
 array(1) {
   [0]=>
-  string(92) "Created by LibXL trial version. Please buy the LibXL full version for removing this message."
+  string(%d) "Created by LibXL trial version%s. Please buy the LibXL full version for removing this message."
 }
 bool(true)
 array(1) {

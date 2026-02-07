@@ -291,6 +291,7 @@ LibXL is a commercial library - see [libxl.com](http://www.libxl.com/) for licen
 
 - **Formulas:** LibXL stores only formulas, not calculated values. Open and save in Excel to calculate.
 - **Trial version:** Some features may be limited without a LibXL license.
+- **`make clean` deletes LibXL `.so` files:** The auto-generated Makefile runs `find . -name \*.so | xargs rm -f`, which recursively deletes all `.so` files — including `libxl/lib64/libxl.so` and others. If you store LibXL in the `libxl/` directory for Docker builds, avoid running `make clean` locally, or you will need to re-download the library.
 
 ## Links
 

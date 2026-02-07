@@ -1,17 +1,17 @@
-# Dockerfile для сборки и тестирования libxl_php8 на разных версиях PHP
-# Использование: docker build --build-arg PHP_VERSION=8.3 -t libxl_php8_test .
+# Dockerfile for building and testing libxl_php8 on different PHP versions
+# Usage: docker build --build-arg PHP_VERSION=8.3 -t libxl_php8_test .
 #
-# Требуется скачать LibXL с https://www.libxl.com/ и положить в директорию libxl/
+# Requires downloading LibXL from https://www.libxl.com/ and placing it into the libxl directory
 
 ARG PHP_VERSION=8.3
 
 FROM --platform=linux/amd64 php:${PHP_VERSION}-cli
 
-# Лицензия LibXL (опционально)
+# LibXL license (optional)
 ARG LIBXL_LICENSE_NAME=""
 ARG LIBXL_LICENSE_KEY=""
 
-# Установка зависимостей для сборки PHP-расширений
+# Install dependencies for building PHP extensions
 RUN apt-get update && apt-get install -y \
     libxml2-dev \
     autoconf \
@@ -20,27 +20,27 @@ RUN apt-get update && apt-get install -y \
     make \
     && rm -rf /var/lib/apt/lists/*
 
-# Копирование LibXL (должен быть скачан вручную с libxl.com)
-# Ожидается структура: libxl-5.1.0/include_c/ и libxl-5.1.0/lib64/
-COPY libxl-5.1.0 /opt/libxl
+# Copy LibXL (must be downloaded manually from libxl.com)
+# Expected structure: include_c/ and lib64/
+COPY libxl /opt/libxl
 
-# Настройка путей к библиотеке
+# Set up library paths
 RUN ln -sf /opt/libxl/lib64/libxl.so /usr/lib/libxl.so && ldconfig
 
-# Проверка библиотеки
+# Verify library
 RUN ls -la /opt/libxl/lib64/ && nm -D /opt/libxl/lib64/libxl.so | grep -i xlCreateBook || echo "xlCreateBook not found"
 
-# Копирование исходников расширения
+# Copy extension source code
 WORKDIR /usr/src/libxl_php8
 COPY . .
 
-# Удаляем артефакты локальной сборки (могут содержать абсолютные пути хоста)
-# Исключаем libxl* директории, чтобы не удалить libxl.so из библиотеки
+# Remove local build artifacts (may contain host-specific absolute paths)
+# Exclude libxl* directories to preserve libxl.so from the library
 RUN rm -f Makefile Makefile.objects Makefile.fragments config.h config.log config.status libtool excel.dep \
     && find . -not -path './libxl*' \( -name '*.lo' -o -name '*.o' -o -name '*.la' -o -name '*.so' -o -name '*.dep' \) -exec rm -f {} + \
     && rm -rf .libs modules autom4te.cache
 
-# Сборка расширения
+# Build the extension
 ENV LD_LIBRARY_PATH=/opt/libxl/lib64:$LD_LIBRARY_PATH
 RUN phpize \
     && ./configure \
@@ -51,7 +51,7 @@ RUN phpize \
     && make install \
     && echo "extension=excel.so" > /usr/local/etc/php/conf.d/excel.ini
 
-# Добавление лицензии в php.ini (если указана)
+# Add license to php.ini (if provided)
 RUN if [ -n "$LIBXL_LICENSE_NAME" ]; then \
         echo "excel.license_name=$LIBXL_LICENSE_NAME" >> /usr/local/etc/php/conf.d/excel.ini; \
     fi && \
@@ -59,8 +59,8 @@ RUN if [ -n "$LIBXL_LICENSE_NAME" ]; then \
         echo "excel.license_key=$LIBXL_LICENSE_KEY" >> /usr/local/etc/php/conf.d/excel.ini; \
     fi
 
-# Проверка загрузки расширения
+# Verify extension is loaded
 RUN php -m | grep -i excel
 
-# Запуск тестов по умолчанию
+# Run tests by default
 CMD ["make", "test", "NO_INTERACTION=1"]

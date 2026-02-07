@@ -1,16 +1,16 @@
-# docker-compose для тестирования libxl_php8 на разных версиях PHP
+# docker-compose for testing libxl_php8 on different PHP versions
 #
-# Использование:
-#   docker compose build              # собрать все образы (без лицензии)
-#   docker compose up php83           # тестирование на PHP 8.3
-#   docker compose up php84           # тестирование на PHP 8.4
+# Usage:
+#   docker compose build              # build all images (without license)
+#   docker compose up php83           # test on PHP 8.3
+#   docker compose up php84           # test on PHP 8.4
 #
-# Сборка с лицензией LibXL:
-#   LIBXL_LICENSE_NAME="Имя Фамилия" LIBXL_LICENSE_KEY="ключ" docker compose build
+# Build with LibXL license:
+#   LIBXL_LICENSE_NAME="First Last" LIBXL_LICENSE_KEY="key" docker compose build
 #
-# ВАЖНО: Перед сборкой необходимо скачать LibXL с https://www.libxl.com/
-# и распаковать в директорию libxl/ в корне проекта.
-# Для x86-64 библиотеки на Apple Silicon используется эмуляция через Rosetta.
+# IMPORTANT: Before building, download LibXL from https://www.libxl.com/
+# and extract it into the libxl/ directory at the project root.
+# For x86-64 libraries on Apple Silicon, Rosetta emulation is used.
 
 services:
   php82:

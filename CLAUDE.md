@@ -8,25 +8,23 @@ libxl_php8 — PHP-расширение (PECL-style) для работы с Exce
 
 **Требования:** PHP 8.2+, LibXL 3.6.0+
 
-## Build Commands
+## Build & Test (Docker only)
+
+Сборка и тестирование выполняются **только через Docker**. Локальная сборка (phpize/make) не используется.
 
 ```bash
-# Сборка расширения
-phpize
-./configure --with-excel --with-libxl-incdir=/path/to/include_c --with-libxl-libdir=/path/to/lib64
-make
-make install
+# Сборка и тестирование на конкретной версии PHP
+docker compose build php83
+docker compose up php83
 
-# Запуск тестов
-make test
+# Проверка компиляции (warnings/errors) — смотреть вывод docker compose build
+# Проверка тестов — смотреть вывод docker compose up
 
-# Тесты с лицензией LibXL
-make test TESTS="-d excel.license_name=NAME -d excel.license_key=KEY"
-
-# Docker сборка и тестирование (PHP 8.3, 8.4)
-docker compose build
-docker compose up
+# Сборка с лицензией LibXL
+LIBXL_LICENSE_NAME="Name" LIBXL_LICENSE_KEY="key" docker compose build
 ```
+
+**Важно:** Не использовать `make clean` локально — удалит `.so` файлы из `libxl/`.
 
 ## Architecture
 

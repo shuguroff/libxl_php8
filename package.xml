@@ -196,6 +196,10 @@ Numbers, etc...
 		<file name="134-condformatting-rules.phpt" role="test" />
 		<file name="135-sheet-activecell-selection.phpt" role="test" />
 		<file name="136-sheet-tabcolor.phpt" role="test" />
+		<file name="137-sheet-hyperlinkindex.phpt" role="test" />
+		<file name="138-book-formatfromstyle-sheet-colrowpx.phpt" role="test" />
+		<file name="139-book-removevba-printersettings.phpt" role="test" />
+		<file name="140-book-dpiawareness.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

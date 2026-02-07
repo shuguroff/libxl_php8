@@ -1836,4 +1836,45 @@ class ExcelSheet
 	{
 	} // setAutoFitArea
 
+	/**
+	* Returns the hyperlink index at the specified cell, or -1 if not found.
+	* Requires LibXL >= 4.1.2.
+	*
+	* @param int $row
+	* @param int $col
+	* @return int
+	*/
+	public function hyperlinkIndex($row, $col)
+	{
+	} // hyperlinkIndex
+
+	/**
+	* Set width of cells within column(s) in pixels.
+	* Requires LibXL >= 4.2.0.
+	*
+	* @param int $column_start
+	* @param int $column_end
+	* @param int $widthPx
+	* @param bool $hidden (optional, default=false)
+	* @param ExcelFormat $format (optional, default=null)
+	* @return bool
+	*/
+	public function setColPx($column_start, $column_end, $widthPx, $hidden = false, $format = null)
+	{
+	} // setColPx
+
+	/**
+	* Set row height in pixels.
+	* Requires LibXL >= 4.2.0.
+	*
+	* @param int $row
+	* @param int $heightPx
+	* @param ExcelFormat $format (optional, default=null)
+	* @param bool $hidden (optional, default=false)
+	* @return bool
+	*/
+	public function setRowPx($row, $heightPx, $format = null, $hidden = false)
+	{
+	} // setRowPx
+
 } // end ExcelSheet

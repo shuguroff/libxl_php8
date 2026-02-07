@@ -1454,6 +1454,36 @@ EXCEL_METHOD(Book, isWriteProtected)
 }
 /* }}} */
 
+#if LIBXL_VERSION >= 0x04020000
+/* {{{ proto ExcelFormat ExcelBook::addFormatFromStyle(int style)
+	Creates a new format from a built-in cell style. */
+EXCEL_METHOD(Book, addFormatFromStyle)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_long style;
+	FormatHandle nformat;
+	excel_format_object *fo;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &style) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	nformat = xlBookAddFormatFromStyle(book, style);
+	if (!nformat) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_format(excel_ce_format));
+	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
+	fo->format = nformat;
+	fo->book = book;
+}
+/* }}} */
+#endif
+
 /* {{{ proto bool ExcelBook::loadWithoutEmptyCells(string filename)
 	Loads a file ignoring empty cells. Returns false if error occurs. */
 EXCEL_METHOD(Book, loadWithoutEmptyCells)
@@ -1561,6 +1591,75 @@ EXCEL_METHOD(Book, addConditionalFormat)
 	excel_condformat_object *cfo = Z_EXCEL_CONDFORMAT_OBJ_P(return_value);
 	cfo->condformat = cf;
 	cfo->book = book;
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x04030000
+/* {{{ proto bool ExcelBook::removeVBA()
+	Removes all VBA data from the workbook. */
+EXCEL_METHOD(Book, removeVBA)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_BOOL(xlBookRemoveVBA(book));
+}
+/* }}} */
+
+/* {{{ proto bool ExcelBook::removePrinterSettings()
+	Removes all printer settings from the workbook. */
+EXCEL_METHOD(Book, removePrinterSettings)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_BOOL(xlBookRemovePrinterSettings(book));
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x04040000
+/* {{{ proto int ExcelBook::dpiAwareness()
+	Returns the DPI awareness value. */
+EXCEL_METHOD(Book, dpiAwareness)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_LONG(xlBookDpiAwareness(book));
+}
+/* }}} */
+
+/* {{{ proto void ExcelBook::setDpiAwareness(int dpiAwareness)
+	Sets the DPI awareness value. */
+EXCEL_METHOD(Book, setDpiAwareness)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_long dpi;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &dpi) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	xlBookSetDpiAwareness(book, dpi);
 }
 /* }}} */
 #endif
@@ -3189,6 +3288,45 @@ EXCEL_METHOD(Sheet, setColWidth)
 }
 /* }}} */
 
+#if LIBXL_VERSION >= 0x04020000
+/* {{{ proto bool ExcelSheet::setColPx(int column_start, int column_end, int widthPx [, bool hidden [, ExcelFormat format]])
+	Set width of cells within column(s) in pixels. */
+EXCEL_METHOD(Sheet, setColPx)
+{
+		SheetHandle sheet;
+		FormatHandle format;
+		zval *object = getThis();
+		zend_long s, e, widthPx;
+		zval *f = NULL;
+		zend_bool h = 0;
+
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "lll|bz", &s, &e, &widthPx, &h, &f) == FAILURE) {
+			RETURN_FALSE;
+		}
+
+		SHEET_FROM_OBJECT(sheet, object);
+
+		if (f) {
+			ZVAL_DEREF(f);
+			FORMAT_FROM_OBJECT(format, f);
+		}
+
+		if (e < s) {
+			zend_throw_exception(excel_ce_exception, "Start cell is greater than end cell", 0);
+			RETURN_THROWS();
+		} else if (s < 0) {
+			zend_throw_exception(excel_ce_exception, "Start cell cannot be less than 0", 0);
+			RETURN_THROWS();
+		} else if (widthPx < 0) {
+			zend_throw_exception(excel_ce_exception, "Width cannot be less than 0", 0);
+			RETURN_THROWS();
+		}
+
+		RETURN_BOOL(xlSheetSetColPx(sheet, s, e, widthPx, f ? format : 0, h));
+}
+/* }}} */
+#endif
+
 /* {{{ proto bool ExcelSheet::setRowHeight(int row, double height [, ExcelFormat format [, bool hidden]])
 	Set row height */
 EXCEL_METHOD(Sheet, setRowHeight)
@@ -3223,6 +3361,42 @@ EXCEL_METHOD(Sheet, setRowHeight)
 		RETURN_BOOL(xlSheetSetRow(sheet, row, height, f ? format : 0, h));
 }
 /* }}} */
+
+#if LIBXL_VERSION >= 0x04020000
+/* {{{ proto bool ExcelSheet::setRowPx(int row, int heightPx [, ExcelFormat format [, bool hidden]])
+	Set row height in pixels. */
+EXCEL_METHOD(Sheet, setRowPx)
+{
+		SheetHandle sheet;
+		FormatHandle format;
+		zval *object = getThis();
+		zend_long row, heightPx;
+		zval *f = NULL;
+		zend_bool h = 0;
+
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll|zb", &row, &heightPx, &f, &h) == FAILURE) {
+			RETURN_FALSE;
+		}
+
+		SHEET_FROM_OBJECT(sheet, object);
+
+		if (f) {
+			ZVAL_DEREF(f);
+			FORMAT_FROM_OBJECT(format, f);
+		}
+
+		if (row < 0) {
+			zend_throw_exception(excel_ce_exception, "Row number cannot be less than 0", 0);
+			RETURN_THROWS();
+		} else if (heightPx < 0) {
+			zend_throw_exception(excel_ce_exception, "Height cannot be less than 0", 0);
+			RETURN_THROWS();
+		}
+
+		RETURN_BOOL(xlSheetSetRowPx(sheet, row, heightPx, f ? format : 0, h));
+}
+/* }}} */
+#endif
 
 /* {{{ proto array ExcelSheet::getMerge(int row, int column)
 	Get cell merge range */
@@ -4900,6 +5074,25 @@ EXCEL_METHOD(Sheet, hyperlinkSize)
 	RETURN_LONG(xlSheetHyperlinkSize(sheet));
 }
 /* }}} */
+
+#if LIBXL_VERSION >= 0x04010200
+/* {{{ proto int ExcelSheet::hyperlinkIndex(int row, int col)
+	Returns the hyperlink index at the specified cell, or -1 if not found. */
+EXCEL_METHOD(Sheet, hyperlinkIndex)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long row, col;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll", &row, &col) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	RETURN_LONG(xlSheetHyperlinkIndex(sheet, row, col));
+}
+/* }}} */
+#endif
 
 /* {{{ proto array ExcelSheet::hyperlink(int index)
 	Gets the hyperlink and its coordinates by index. */
@@ -7455,6 +7648,51 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_getTabRgbColor, 0, 0, 0)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x04010200
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_hyperlinkIndex, 0, 0, 2)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, col)
+ZEND_END_ARG_INFO()
+#endif
+
+#if LIBXL_VERSION >= 0x04020000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_addFormatFromStyle, 0, 0, 1)
+	ZEND_ARG_INFO(0, style)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_setColPx, 0, 0, 3)
+	ZEND_ARG_INFO(0, column_start)
+	ZEND_ARG_INFO(0, column_end)
+	ZEND_ARG_INFO(0, widthPx)
+	ZEND_ARG_INFO(0, hidden)
+	ZEND_ARG_OBJ_INFO(0, format, ExcelFormat, 1)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_setRowPx, 0, 0, 2)
+	ZEND_ARG_INFO(0, row)
+	ZEND_ARG_INFO(0, heightPx)
+	ZEND_ARG_OBJ_INFO(0, format, ExcelFormat, 1)
+	ZEND_ARG_INFO(0, hidden)
+ZEND_END_ARG_INFO()
+#endif
+
+#if LIBXL_VERSION >= 0x04030000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_removeVBA, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_removePrinterSettings, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#endif
+
+#if LIBXL_VERSION >= 0x04040000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_dpiAwareness, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_setDpiAwareness, 0, 0, 1)
+	ZEND_ARG_INFO(0, dpiAwareness)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -7519,6 +7757,17 @@ zend_function_entry excel_funcs_book[] = {
 #endif
 #if LIBXL_VERSION >= 0x04010000
 	EXCEL_ME(Book, addConditionalFormat, arginfo_Book_addConditionalFormat, 0)
+#endif
+#if LIBXL_VERSION >= 0x04020000
+	EXCEL_ME(Book, addFormatFromStyle, arginfo_Book_addFormatFromStyle, 0)
+#endif
+#if LIBXL_VERSION >= 0x04030000
+	EXCEL_ME(Book, removeVBA, arginfo_Book_removeVBA, 0)
+	EXCEL_ME(Book, removePrinterSettings, arginfo_Book_removePrinterSettings, 0)
+#endif
+#if LIBXL_VERSION >= 0x04040000
+	EXCEL_ME(Book, dpiAwareness, arginfo_Book_dpiAwareness, 0)
+	EXCEL_ME(Book, setDpiAwareness, arginfo_Book_setDpiAwareness, 0)
 #endif
 	PHP_FE_END
 };
@@ -7697,6 +7946,13 @@ zend_function_entry excel_funcs_sheet[] = {
 	EXCEL_ME(Sheet, removeSelection, arginfo_Sheet_removeSelection, 0)
 	EXCEL_ME(Sheet, tabColor, arginfo_Sheet_tabColor, 0)
 	EXCEL_ME(Sheet, getTabRgbColor, arginfo_Sheet_getTabRgbColor, 0)
+#endif
+#if LIBXL_VERSION >= 0x04010200
+	EXCEL_ME(Sheet, hyperlinkIndex, arginfo_Sheet_hyperlinkIndex, 0)
+#endif
+#if LIBXL_VERSION >= 0x04020000
+	EXCEL_ME(Sheet, setColPx, arginfo_Sheet_setColPx, 0)
+	EXCEL_ME(Sheet, setRowPx, arginfo_Sheet_setRowPx, 0)
 #endif
 	PHP_FE_END
 };
@@ -8125,6 +8381,57 @@ PHP_MINIT_FUNCTION(excel)
 	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CALCMODE_MANUAL", CALCMODE_MANUAL);
 	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CALCMODE_AUTO", CALCMODE_AUTO);
 	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CALCMODE_AUTONOTABLE", CALCMODE_AUTONOTABLE);
+#endif
+
+#if LIBXL_VERSION >= 0x04020000
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_NORMAL", CELLSTYLE_NORMAL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_BAD", CELLSTYLE_BAD);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_GOOD", CELLSTYLE_GOOD);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_NEUTRAL", CELLSTYLE_NEUTRAL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_CALC", CELLSTYLE_CALC);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_CHECKCELL", CELLSTYLE_CHECKCELL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_EXPLANATORY", CELLSTYLE_EXPLANATORY);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_INPUT", CELLSTYLE_INPUT);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_OUTPUT", CELLSTYLE_OUTPUT);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_HYPERLINK", CELLSTYLE_HYPERLINK);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_LINKEDCELL", CELLSTYLE_LINKEDCELL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_NOTE", CELLSTYLE_NOTE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_WARNING", CELLSTYLE_WARNING);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_TITLE", CELLSTYLE_TITLE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_HEADING1", CELLSTYLE_HEADING1);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_HEADING2", CELLSTYLE_HEADING2);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_HEADING3", CELLSTYLE_HEADING3);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_HEADING4", CELLSTYLE_HEADING4);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_TOTAL", CELLSTYLE_TOTAL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_20ACCENT1", CELLSTYLE_20ACCENT1);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_40ACCENT1", CELLSTYLE_40ACCENT1);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_60ACCENT1", CELLSTYLE_60ACCENT1);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_ACCENT1", CELLSTYLE_ACCENT1);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_20ACCENT2", CELLSTYLE_20ACCENT2);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_40ACCENT2", CELLSTYLE_40ACCENT2);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_60ACCENT2", CELLSTYLE_60ACCENT2);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_ACCENT2", CELLSTYLE_ACCENT2);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_20ACCENT3", CELLSTYLE_20ACCENT3);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_40ACCENT3", CELLSTYLE_40ACCENT3);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_60ACCENT3", CELLSTYLE_60ACCENT3);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_ACCENT3", CELLSTYLE_ACCENT3);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_20ACCENT4", CELLSTYLE_20ACCENT4);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_40ACCENT4", CELLSTYLE_40ACCENT4);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_60ACCENT4", CELLSTYLE_60ACCENT4);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_ACCENT4", CELLSTYLE_ACCENT4);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_20ACCENT5", CELLSTYLE_20ACCENT5);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_40ACCENT5", CELLSTYLE_40ACCENT5);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_60ACCENT5", CELLSTYLE_60ACCENT5);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_ACCENT5", CELLSTYLE_ACCENT5);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_20ACCENT6", CELLSTYLE_20ACCENT6);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_40ACCENT6", CELLSTYLE_40ACCENT6);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_60ACCENT6", CELLSTYLE_60ACCENT6);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_ACCENT6", CELLSTYLE_ACCENT6);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_COMMA", CELLSTYLE_COMMA);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_COMMA0", CELLSTYLE_COMMA0);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_CURRENCY", CELLSTYLE_CURRENCY);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_CURRENCY0", CELLSTYLE_CURRENCY0);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_PERCENT", CELLSTYLE_PERCENT);
 #endif
 
 	excel_richstring_register();

@@ -561,4 +561,56 @@ class ExcelBook
 	{
 	} // requiresKey
 
+	/**
+	* Creates a new format from a built-in cell style.
+	* Requires LibXL >= 4.2.0.
+	*
+	* @param int $style CellStyle constant (e.g. ExcelBook::CELLSTYLE_NORMAL)
+	* @return ExcelFormat|false
+	*/
+	public function addFormatFromStyle($style)
+	{
+	} // addFormatFromStyle
+
+	/**
+	* Removes all VBA data from the workbook.
+	* Requires LibXL >= 4.3.0.
+	*
+	* @return bool
+	*/
+	public function removeVBA()
+	{
+	} // removeVBA
+
+	/**
+	* Removes all printer settings from the workbook.
+	* Requires LibXL >= 4.3.0.
+	*
+	* @return bool
+	*/
+	public function removePrinterSettings()
+	{
+	} // removePrinterSettings
+
+	/**
+	* Returns the DPI awareness value.
+	* Requires LibXL >= 4.4.0.
+	*
+	* @return int
+	*/
+	public function dpiAwareness()
+	{
+	} // dpiAwareness
+
+	/**
+	* Sets the DPI awareness value.
+	* Requires LibXL >= 4.4.0.
+	*
+	* @param int $dpiAwareness
+	* @return void
+	*/
+	public function setDpiAwareness($dpiAwareness)
+	{
+	} // setDpiAwareness
+
 } // end ExcelBook

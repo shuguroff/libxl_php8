@@ -4,6 +4,7 @@
 #   docker compose build              # build all images (without license)
 #   docker compose up php83           # test on PHP 8.3
 #   docker compose up php84           # test on PHP 8.4
+#   docker compose up php85           # test on PHP 8.5
 #
 # Build with LibXL license:
 #   LIBXL_LICENSE_NAME="First Last" LIBXL_LICENSE_KEY="key" docker compose build
@@ -39,6 +40,9 @@ services:
         PHP_VERSION: "8.4"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    volumes:
+      - ./examples:/var/www/html/
+    working_dir: /var/www/html
 
   php85:
     platform: linux/amd64

@@ -260,6 +260,7 @@ excel.skip_empty=0
 
 - See `docs/` directory for API documentation
 - See `tests/` directory for usage examples
+- See [EXAMPLES.md](EXAMPLES.md) for comprehensive PHP examples
 - [LibXL C API Documentation](http://www.libxl.com/documentation.html)
 
 ## Testing

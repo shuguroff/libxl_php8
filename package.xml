@@ -61,6 +61,7 @@ Numbers, etc...
 	  	<file name="ExcelAutoFilter.php" role="doc" />
 	  	<file name="ExcelFilterColumn.php" role="doc" />
 	  	<file name="ExcelFormControl.php" role="doc" />
+	  	<file name="ExcelCoreProperties.php" role="doc" />
 	  </dir>
 
       <dir name="tests">
@@ -200,6 +201,11 @@ Numbers, etc...
 		<file name="138-book-formatfromstyle-sheet-colrowpx.phpt" role="test" />
 		<file name="139-book-removevba-printersettings.phpt" role="test" />
 		<file name="140-book-dpiawareness.phpt" role="test" />
+		<file name="141-coreprops-strings.phpt" role="test" />
+		<file name="142-coreprops-doubles.phpt" role="test" />
+		<file name="143-coreprops-removeall.phpt" role="test" />
+		<file name="144-sheet-colformat-rowformat-setborder.phpt" role="test" />
+		<file name="145-book-removeallphonetics.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

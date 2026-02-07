@@ -140,6 +140,14 @@ typedef struct _excel_condformatting_object {
 } excel_condformatting_object;
 #endif
 
+#if LIBXL_VERSION >= 0x04050000
+typedef struct _excel_coreproperties_object {
+	CorePropertiesHandle coreproperties;
+	BookHandle book;
+	zend_object std;
+} excel_coreproperties_object;
+#endif
+
 /* ----------------------------------------------------------------
    Inline fetch functions
    ---------------------------------------------------------------- */
@@ -192,6 +200,12 @@ static inline excel_condformatting_object *php_excel_condformatting_object_fetch
 }
 #endif
 
+#if LIBXL_VERSION >= 0x04050000
+static inline excel_coreproperties_object *php_excel_coreproperties_object_fetch_object(zend_object *obj) {
+	return (excel_coreproperties_object *)((char *)(obj) - XtOffsetOf(excel_coreproperties_object, std));
+}
+#endif
+
 /* ----------------------------------------------------------------
    Z_EXCEL_*_OBJ_P macros
    ---------------------------------------------------------------- */
@@ -217,6 +231,10 @@ static inline excel_condformatting_object *php_excel_condformatting_object_fetch
 #if LIBXL_VERSION >= 0x04010000
 #define Z_EXCEL_CONDFORMAT_OBJ_P(zv) php_excel_condformat_object_fetch_object(Z_OBJ_P(zv));
 #define Z_EXCEL_CONDFORMATTING_OBJ_P(zv) php_excel_condformatting_object_fetch_object(Z_OBJ_P(zv));
+#endif
+
+#if LIBXL_VERSION >= 0x04050000
+#define Z_EXCEL_COREPROPERTIES_OBJ_P(zv) php_excel_coreproperties_object_fetch_object(Z_OBJ_P(zv));
 #endif
 
 /* ----------------------------------------------------------------
@@ -388,6 +406,29 @@ extern zend_class_entry *excel_ce_exception;
 	}
 #endif
 
+#if LIBXL_VERSION >= 0x04050000
+#define COREPROPERTIES_FROM_OBJECT(coreproperties, object) \
+	{ \
+		excel_coreproperties_object *obj = Z_EXCEL_COREPROPERTIES_OBJ_P(object); \
+		coreproperties = obj->coreproperties; \
+		if (!coreproperties) { \
+			zend_throw_exception(excel_ce_exception, "The core properties object wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define COREPROPERTIES_AND_BOOK_FROM_OBJECT(coreproperties, book, object) \
+	{ \
+		excel_coreproperties_object *obj = Z_EXCEL_COREPROPERTIES_OBJ_P(object); \
+		coreproperties = obj->coreproperties; \
+		book = obj->book; \
+		if (!coreproperties) { \
+			zend_throw_exception(excel_ce_exception, "The core properties object wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+#endif
+
 /* ----------------------------------------------------------------
    Extern declarations for class entries and object handlers
    ---------------------------------------------------------------- */
@@ -413,6 +454,10 @@ extern zend_class_entry *excel_ce_formcontrol;
 #if LIBXL_VERSION >= 0x04010000
 extern zend_class_entry *excel_ce_condformat;
 extern zend_class_entry *excel_ce_condformatting;
+#endif
+
+#if LIBXL_VERSION >= 0x04050000
+extern zend_class_entry *excel_ce_coreproperties;
 #endif
 
 extern zend_object_handlers excel_object_handlers_book;
@@ -442,6 +487,11 @@ extern zend_object_handlers excel_object_handlers_condformat;
 extern zend_object_handlers excel_object_handlers_condformatting;
 extern zend_object *excel_object_new_condformat(zend_class_entry *class_type);
 extern zend_object *excel_object_new_condformatting(zend_class_entry *class_type);
+#endif
+
+#if LIBXL_VERSION >= 0x04050000
+extern zend_object_handlers excel_object_handlers_coreproperties;
+extern zend_object *excel_object_new_coreproperties(zend_class_entry *class_type);
 #endif
 
 /* ----------------------------------------------------------------

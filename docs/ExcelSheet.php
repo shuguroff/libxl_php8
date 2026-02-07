@@ -1877,4 +1877,42 @@ class ExcelSheet
 	{
 	} // setRowPx
 
+	/**
+	* Returns the default format for a column.
+	* Requires LibXL >= 4.5.0.
+	*
+	* @param int $col
+	* @return ExcelFormat|false
+	*/
+	public function colFormat($col)
+	{
+	} // colFormat
+
+	/**
+	* Returns the default format for a row.
+	* Requires LibXL >= 4.5.0.
+	*
+	* @param int $row
+	* @return ExcelFormat|false
+	*/
+	public function rowFormat($row)
+	{
+	} // rowFormat
+
+	/**
+	* Sets borders for a range of cells.
+	* Requires LibXL >= 4.5.1.
+	*
+	* @param int $rowFirst
+	* @param int $rowLast
+	* @param int $colFirst
+	* @param int $colLast
+	* @param int $borderStyle
+	* @param int $borderColor
+	* @return bool
+	*/
+	public function setBorder($rowFirst, $rowLast, $colFirst, $colLast, $borderStyle, $borderColor)
+	{
+	} // setBorder
+
 } // end ExcelSheet

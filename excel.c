@@ -1664,6 +1664,49 @@ EXCEL_METHOD(Book, setDpiAwareness)
 /* }}} */
 #endif
 
+#if LIBXL_VERSION >= 0x04050000
+/* {{{ proto ExcelCoreProperties ExcelBook::coreProperties()
+	Returns the core properties object for an XLSX workbook. */
+EXCEL_METHOD(Book, coreProperties)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	CorePropertiesHandle cp = xlBookCoreProperties(book);
+	if (!cp) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_coreproperties(excel_ce_coreproperties));
+	excel_coreproperties_object *cpo = Z_EXCEL_COREPROPERTIES_OBJ_P(return_value);
+	cpo->coreproperties = cp;
+	cpo->book = book;
+}
+/* }}} */
+
+/* {{{ proto void ExcelBook::removeAllPhonetics()
+	Removes all phonetic data from the workbook. */
+EXCEL_METHOD(Book, removeAllPhonetics)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	xlBookRemoveAllPhonetics(book);
+}
+/* }}} */
+#endif
+
 /* {{{ proto int ExcelFont::size([int size])
 	Get or set the font size */
 EXCEL_METHOD(Font, size)
@@ -3394,6 +3437,88 @@ EXCEL_METHOD(Sheet, setRowPx)
 		}
 
 		RETURN_BOOL(xlSheetSetRowPx(sheet, row, heightPx, f ? format : 0, h));
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x04050000
+/* {{{ proto ExcelFormat|false ExcelSheet::colFormat(int col)
+	Returns the default format for a column. */
+EXCEL_METHOD(Sheet, colFormat)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long col;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &col) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	FormatHandle format = xlSheetColFormat(sheet, col);
+	if (!format) {
+		RETURN_FALSE;
+	}
+
+	excel_format_object *fo;
+	ZVAL_OBJ(return_value, excel_object_new_format(excel_ce_format));
+	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
+	fo->format = format;
+	fo->book = book;
+}
+/* }}} */
+
+/* {{{ proto ExcelFormat|false ExcelSheet::rowFormat(int row)
+	Returns the default format for a row. */
+EXCEL_METHOD(Sheet, rowFormat)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long row;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &row) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	FormatHandle format = xlSheetRowFormat(sheet, row);
+	if (!format) {
+		RETURN_FALSE;
+	}
+
+	excel_format_object *fo;
+	ZVAL_OBJ(return_value, excel_object_new_format(excel_ce_format));
+	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
+	fo->format = format;
+	fo->book = book;
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x04050100
+/* Macro missing from libxl.h for xlSheetSetBorder */
+#ifndef xlSheetSetBorder
+#define xlSheetSetBorder xlSheetSetBorderA
+#endif
+
+/* {{{ proto bool ExcelSheet::setBorder(int rowFirst, int rowLast, int colFirst, int colLast, int borderStyle, int borderColor)
+	Sets borders for a range of cells. */
+EXCEL_METHOD(Sheet, setBorder)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long rowFirst, rowLast, colFirst, colLast, borderStyle, borderColor;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "llllll", &rowFirst, &rowLast, &colFirst, &colLast, &borderStyle, &borderColor) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	RETURN_BOOL(xlSheetSetBorder(sheet, rowFirst, rowLast, colFirst, colLast, borderStyle, borderColor));
 }
 /* }}} */
 #endif
@@ -7693,6 +7818,33 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_setDpiAwareness, 0, 0, 1)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x04050000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_coreProperties, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_removeAllPhonetics, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_colFormat, 0, 0, 1)
+	ZEND_ARG_INFO(0, col)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_rowFormat, 0, 0, 1)
+	ZEND_ARG_INFO(0, row)
+ZEND_END_ARG_INFO()
+#endif
+
+#if LIBXL_VERSION >= 0x04050100
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_setBorder, 0, 0, 6)
+	ZEND_ARG_INFO(0, rowFirst)
+	ZEND_ARG_INFO(0, rowLast)
+	ZEND_ARG_INFO(0, colFirst)
+	ZEND_ARG_INFO(0, colLast)
+	ZEND_ARG_INFO(0, borderStyle)
+	ZEND_ARG_INFO(0, borderColor)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -7768,6 +7920,10 @@ zend_function_entry excel_funcs_book[] = {
 #if LIBXL_VERSION >= 0x04040000
 	EXCEL_ME(Book, dpiAwareness, arginfo_Book_dpiAwareness, 0)
 	EXCEL_ME(Book, setDpiAwareness, arginfo_Book_setDpiAwareness, 0)
+#endif
+#if LIBXL_VERSION >= 0x04050000
+	EXCEL_ME(Book, coreProperties, arginfo_Book_coreProperties, 0)
+	EXCEL_ME(Book, removeAllPhonetics, arginfo_Book_removeAllPhonetics, 0)
 #endif
 	PHP_FE_END
 };
@@ -7953,6 +8109,13 @@ zend_function_entry excel_funcs_sheet[] = {
 #if LIBXL_VERSION >= 0x04020000
 	EXCEL_ME(Sheet, setColPx, arginfo_Sheet_setColPx, 0)
 	EXCEL_ME(Sheet, setRowPx, arginfo_Sheet_setRowPx, 0)
+#endif
+#if LIBXL_VERSION >= 0x04050000
+	EXCEL_ME(Sheet, colFormat, arginfo_Sheet_colFormat, 0)
+	EXCEL_ME(Sheet, rowFormat, arginfo_Sheet_rowFormat, 0)
+#endif
+#if LIBXL_VERSION >= 0x04050100
+	EXCEL_ME(Sheet, setBorder, arginfo_Sheet_setBorder, 0)
 #endif
 	PHP_FE_END
 };

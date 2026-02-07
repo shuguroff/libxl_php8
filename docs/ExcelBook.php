@@ -613,4 +613,24 @@ class ExcelBook
 	{
 	} // setDpiAwareness
 
+	/**
+	* Returns the core properties object for an XLSX workbook.
+	* Requires LibXL >= 4.5.0.
+	*
+	* @return ExcelCoreProperties|false
+	*/
+	public function coreProperties()
+	{
+	} // coreProperties
+
+	/**
+	* Removes all phonetic data from the workbook.
+	* Requires LibXL >= 4.5.0.
+	*
+	* @return void
+	*/
+	public function removeAllPhonetics()
+	{
+	} // removeAllPhonetics
+
 } // end ExcelBook

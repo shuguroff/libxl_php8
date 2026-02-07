@@ -298,7 +298,7 @@ static void excel_autofilter_object_free_storage(zend_object *object)
 	zend_object_std_dtor(&intern->std);
 }
 
-static zend_object *excel_object_new_autofilter_ex(zend_class_entry *class_type, excel_autofilter_object **ptr)
+zend_object *excel_object_new_autofilter_ex(zend_class_entry *class_type, excel_autofilter_object **ptr)
 {
 	excel_autofilter_object *intern;
 
@@ -320,7 +320,7 @@ static zend_object *excel_object_new_autofilter_ex(zend_class_entry *class_type,
 	return &intern->std;
 }
 
-static zend_object *excel_object_new_autofilter(zend_class_entry *class_type)
+zend_object *excel_object_new_autofilter(zend_class_entry *class_type)
 {
 	return excel_object_new_autofilter_ex(class_type, NULL);
 }
@@ -3519,6 +3519,135 @@ EXCEL_METHOD(Sheet, setBorder)
 
 	SHEET_FROM_OBJECT(sheet, object);
 	RETURN_BOOL(xlSheetSetBorder(sheet, rowFirst, rowLast, colFirst, colLast, borderStyle, borderColor));
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x04060000
+/* {{{ proto ExcelTable|false ExcelSheet::addTable(string name, int rowFirst, int rowLast, int colFirst, int colLast, bool hasHeaders, int tableStyle)
+	Adds a table to the sheet. */
+EXCEL_METHOD(Sheet, addTable)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_string *name;
+	zend_long rowFirst, rowLast, colFirst, colLast;
+	zend_bool hasHeaders = 0;
+	zend_long tableStyle = TABLESTYLE_MEDIUM2;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Sllll|bl", &name, &rowFirst, &rowLast, &colFirst, &colLast, &hasHeaders, &tableStyle) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	TableHandle th = xlSheetAddTable(sheet, ZSTR_VAL(name), (int)rowFirst, (int)rowLast, (int)colFirst, (int)colLast, (int)hasHeaders, (int)tableStyle);
+	if (!th) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_table(excel_ce_table));
+	excel_table_object *tobj = Z_EXCEL_TABLE_OBJ_P(return_value);
+	tobj->table = th;
+	tobj->sheet = sheet;
+	tobj->book = book;
+}
+/* }}} */
+
+/* {{{ proto ExcelTable|false ExcelSheet::getTableByName(string name)
+	Returns a table by name. */
+EXCEL_METHOD(Sheet, getTableByName)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_string *name;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	TableHandle th = xlSheetGetTableByName(sheet, ZSTR_VAL(name));
+	if (!th) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_table(excel_ce_table));
+	excel_table_object *tobj = Z_EXCEL_TABLE_OBJ_P(return_value);
+	tobj->table = th;
+	tobj->sheet = sheet;
+	tobj->book = book;
+}
+/* }}} */
+
+/* {{{ proto ExcelTable|false ExcelSheet::getTableByIndex(int index)
+	Returns a table by index. */
+EXCEL_METHOD(Sheet, getTableByIndex)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long index;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	TableHandle th = xlSheetGetTableByIndex(sheet, (int)index);
+	if (!th) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_table(excel_ce_table));
+	excel_table_object *tobj = Z_EXCEL_TABLE_OBJ_P(return_value);
+	tobj->table = th;
+	tobj->sheet = sheet;
+	tobj->book = book;
+}
+/* }}} */
+
+/* {{{ proto int ExcelSheet::tableSize()
+	Returns the number of tables in the sheet. */
+EXCEL_METHOD(Sheet, tableSize)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	RETURN_LONG(xlSheetTableSize(sheet));
+}
+/* }}} */
+
+/* {{{ proto void ExcelSheet::applyFilter2(ExcelAutoFilter autoFilter)
+	Applies the specified AutoFilter to the sheet. */
+EXCEL_METHOD(Sheet, applyFilter2)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zval *af_zval;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O", &af_zval, excel_ce_autofilter) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	excel_autofilter_object *afo = Z_EXCEL_AUTOFILTER_OBJ_P(af_zval);
+	if (!afo->autofilter) {
+		zend_throw_exception(excel_ce_exception, "The autofilter wasn't initialized", 0);
+		RETURN_THROWS();
+	}
+
+	xlSheetApplyFilter2(sheet, afo->autofilter);
 }
 /* }}} */
 #endif
@@ -7845,6 +7974,33 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_setBorder, 0, 0, 6)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x04060000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_addTable, 0, 0, 5)
+	ZEND_ARG_INFO(0, name)
+	ZEND_ARG_INFO(0, rowFirst)
+	ZEND_ARG_INFO(0, rowLast)
+	ZEND_ARG_INFO(0, colFirst)
+	ZEND_ARG_INFO(0, colLast)
+	ZEND_ARG_INFO(0, hasHeaders)
+	ZEND_ARG_INFO(0, tableStyle)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_getTableByName, 0, 0, 1)
+	ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_getTableByIndex, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_tableSize, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_applyFilter2, 0, 0, 1)
+	ZEND_ARG_INFO(0, autoFilter)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -8116,6 +8272,13 @@ zend_function_entry excel_funcs_sheet[] = {
 #endif
 #if LIBXL_VERSION >= 0x04050100
 	EXCEL_ME(Sheet, setBorder, arginfo_Sheet_setBorder, 0)
+#endif
+#if LIBXL_VERSION >= 0x04060000
+	EXCEL_ME(Sheet, addTable, arginfo_Sheet_addTable, 0)
+	EXCEL_ME(Sheet, getTableByName, arginfo_Sheet_getTableByName, 0)
+	EXCEL_ME(Sheet, getTableByIndex, arginfo_Sheet_getTableByIndex, 0)
+	EXCEL_ME(Sheet, tableSize, arginfo_Sheet_tableSize, 0)
+	EXCEL_ME(Sheet, applyFilter2, arginfo_Sheet_applyFilter2, 0)
 #endif
 	PHP_FE_END
 };

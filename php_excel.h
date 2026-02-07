@@ -148,6 +148,15 @@ typedef struct _excel_coreproperties_object {
 } excel_coreproperties_object;
 #endif
 
+#if LIBXL_VERSION >= 0x04060000
+typedef struct _excel_table_object {
+	TableHandle table;
+	SheetHandle sheet;
+	BookHandle book;
+	zend_object std;
+} excel_table_object;
+#endif
+
 /* ----------------------------------------------------------------
    Inline fetch functions
    ---------------------------------------------------------------- */
@@ -206,6 +215,12 @@ static inline excel_coreproperties_object *php_excel_coreproperties_object_fetch
 }
 #endif
 
+#if LIBXL_VERSION >= 0x04060000
+static inline excel_table_object *php_excel_table_object_fetch_object(zend_object *obj) {
+	return (excel_table_object *)((char *)(obj) - XtOffsetOf(excel_table_object, std));
+}
+#endif
+
 /* ----------------------------------------------------------------
    Z_EXCEL_*_OBJ_P macros
    ---------------------------------------------------------------- */
@@ -235,6 +250,10 @@ static inline excel_coreproperties_object *php_excel_coreproperties_object_fetch
 
 #if LIBXL_VERSION >= 0x04050000
 #define Z_EXCEL_COREPROPERTIES_OBJ_P(zv) php_excel_coreproperties_object_fetch_object(Z_OBJ_P(zv));
+#endif
+
+#if LIBXL_VERSION >= 0x04060000
+#define Z_EXCEL_TABLE_OBJ_P(zv) php_excel_table_object_fetch_object(Z_OBJ_P(zv));
 #endif
 
 /* ----------------------------------------------------------------
@@ -429,6 +448,40 @@ extern zend_class_entry *excel_ce_exception;
 	}
 #endif
 
+#if LIBXL_VERSION >= 0x04060000
+#define TABLE_FROM_OBJECT(table, object) \
+	{ \
+		excel_table_object *obj = Z_EXCEL_TABLE_OBJ_P(object); \
+		table = obj->table; \
+		if (!table) { \
+			zend_throw_exception(excel_ce_exception, "The table wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define TABLE_AND_SHEET_FROM_OBJECT(table, sheet, object) \
+	{ \
+		excel_table_object *obj = Z_EXCEL_TABLE_OBJ_P(object); \
+		table = obj->table; \
+		sheet = obj->sheet; \
+		if (!table) { \
+			zend_throw_exception(excel_ce_exception, "The table wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+
+#define TABLE_AND_BOOK_FROM_OBJECT(table, book, object) \
+	{ \
+		excel_table_object *obj = Z_EXCEL_TABLE_OBJ_P(object); \
+		table = obj->table; \
+		book = obj->book; \
+		if (!table) { \
+			zend_throw_exception(excel_ce_exception, "The table wasn't initialized", 0); \
+			RETURN_THROWS(); \
+		} \
+	}
+#endif
+
 /* ----------------------------------------------------------------
    Extern declarations for class entries and object handlers
    ---------------------------------------------------------------- */
@@ -460,6 +513,10 @@ extern zend_class_entry *excel_ce_condformatting;
 extern zend_class_entry *excel_ce_coreproperties;
 #endif
 
+#if LIBXL_VERSION >= 0x04060000
+extern zend_class_entry *excel_ce_table;
+#endif
+
 extern zend_object_handlers excel_object_handlers_book;
 extern zend_object_handlers excel_object_handlers_sheet;
 extern zend_object_handlers excel_object_handlers_format;
@@ -470,6 +527,7 @@ extern zend_object *excel_object_new_font(zend_class_entry *class_type);
 #if LIBXL_VERSION >= 0x03070000
 extern zend_object_handlers excel_object_handlers_autofilter;
 extern zend_object_handlers excel_object_handlers_filtercolumn;
+extern zend_object *excel_object_new_autofilter(zend_class_entry *class_type);
 #endif
 
 #if LIBXL_VERSION >= 0x03090000
@@ -492,6 +550,11 @@ extern zend_object *excel_object_new_condformatting(zend_class_entry *class_type
 #if LIBXL_VERSION >= 0x04050000
 extern zend_object_handlers excel_object_handlers_coreproperties;
 extern zend_object *excel_object_new_coreproperties(zend_class_entry *class_type);
+#endif
+
+#if LIBXL_VERSION >= 0x04060000
+extern zend_object_handlers excel_object_handlers_table;
+extern zend_object *excel_object_new_table(zend_class_entry *class_type);
 #endif
 
 /* ----------------------------------------------------------------

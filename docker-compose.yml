@@ -22,6 +22,9 @@ services:
         PHP_VERSION: "8.2"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    volumes:
+      - ./examples:/var/www/html/
+    working_dir: /var/www/html
 
   php83:
     platform: linux/amd64
@@ -31,6 +34,9 @@ services:
         PHP_VERSION: "8.3"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    volumes:
+      - ./examples:/var/www/html/
+    working_dir: /var/www/html
 
   php84:
     platform: linux/amd64
@@ -52,3 +58,6 @@ services:
         PHP_VERSION: "8.5"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    volumes:
+      - ./examples:/var/www/html/
+    working_dir: /var/www/html

@@ -3504,6 +3504,40 @@ EXCEL_METHOD(Sheet, lastCol)
 }
 /* }}} */
 
+#if LIBXL_VERSION >= 0x03090100
+/* {{{ proto int ExcelSheet::firstFilledRow()
+	Returns the first filled row in the sheet. */
+EXCEL_METHOD(Sheet, firstFilledRow)
+{
+	PHP_EXCEL_INFO(FirstFilledRow, IS_LONG)
+}
+/* }}} */
+
+/* {{{ proto int ExcelSheet::lastFilledRow()
+	Returns the zero-based index of the row after the last filled row in the sheet. */
+EXCEL_METHOD(Sheet, lastFilledRow)
+{
+	PHP_EXCEL_INFO(LastFilledRow, IS_LONG)
+}
+/* }}} */
+
+/* {{{ proto int ExcelSheet::firstFilledCol()
+	Returns the first filled column in the sheet. */
+EXCEL_METHOD(Sheet, firstFilledCol)
+{
+	PHP_EXCEL_INFO(FirstFilledCol, IS_LONG)
+}
+/* }}} */
+
+/* {{{ proto int ExcelSheet::lastFilledCol()
+	Returns the zero-based index of the column after the last filled column in the sheet. */
+EXCEL_METHOD(Sheet, lastFilledCol)
+{
+	PHP_EXCEL_INFO(LastFilledCol, IS_LONG)
+}
+/* }}} */
+#endif
+
 /* {{{ proto bool ExcelSheet::displayGridlines()
 	Returns whether the gridlines are displayed */
 EXCEL_METHOD(Sheet, displayGridlines)
@@ -7089,6 +7123,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removePictureByIndex, 0, 0, 1)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x03090100
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_firstFilledRow, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_lastFilledRow, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_firstFilledCol, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_lastFilledCol, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -7308,6 +7356,12 @@ zend_function_entry excel_funcs_sheet[] = {
 	EXCEL_ME(Sheet, writeRichStr, arginfo_Sheet_writeRichStr, 0)
 	EXCEL_ME(Sheet, removePicture, arginfo_Sheet_removePicture, 0)
 	EXCEL_ME(Sheet, removePictureByIndex, arginfo_Sheet_removePictureByIndex, 0)
+#endif
+#if LIBXL_VERSION >= 0x03090100
+	EXCEL_ME(Sheet, firstFilledRow, arginfo_Sheet_firstFilledRow, 0)
+	EXCEL_ME(Sheet, lastFilledRow, arginfo_Sheet_lastFilledRow, 0)
+	EXCEL_ME(Sheet, firstFilledCol, arginfo_Sheet_firstFilledCol, 0)
+	EXCEL_ME(Sheet, lastFilledCol, arginfo_Sheet_lastFilledCol, 0)
 #endif
 	PHP_FE_END
 };

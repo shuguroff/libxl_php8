@@ -862,6 +862,50 @@ class ExcelSheet
 	} // lastRow
 
 	/**
+	* Returns the first filled row in the sheet.
+	* Unlike firstRow(), this skips rows that contain only formatting.
+	* Requires LibXL >= 3.9.1.
+	*
+	* @return int
+	*/
+	public function firstFilledRow()
+	{
+	} // firstFilledRow
+
+	/**
+	* Returns the zero-based index of the row after the last filled row.
+	* Unlike lastRow(), this skips rows that contain only formatting.
+	* Requires LibXL >= 3.9.1.
+	*
+	* @return int
+	*/
+	public function lastFilledRow()
+	{
+	} // lastFilledRow
+
+	/**
+	* Returns the first filled column in the sheet.
+	* Unlike firstCol(), this skips columns that contain only formatting.
+	* Requires LibXL >= 3.9.1.
+	*
+	* @return int
+	*/
+	public function firstFilledCol()
+	{
+	} // firstFilledCol
+
+	/**
+	* Returns the zero-based index of the column after the last filled column.
+	* Unlike lastCol(), this skips columns that contain only formatting.
+	* Requires LibXL >= 3.9.1.
+	*
+	* @return int
+	*/
+	public function lastFilledCol()
+	{
+	} // lastFilledCol
+
+	/**
 	* Returns the bottom margin of the sheet (in inches)
 	*
 	* @see ExcelSheet::marginTop()

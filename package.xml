@@ -172,6 +172,14 @@ Numbers, etc...
 		<file name="116-integration-complex.phpt" role="test" />
 		<file name="117-writeFormula.phpt" role="test" />
 		<file name="118-sheet-libxl386.phpt" role="test" />
+		<file name="119-book-version.phpt" role="test" />
+		<file name="120-sheet-defaultrowheight.phpt" role="test" />
+		<file name="121-sheet-writestrAsnum.phpt" role="test" />
+		<file name="122-richstring.phpt" role="test" />
+		<file name="123-book-richstring-calcmode.phpt" role="test" />
+		<file name="124-sheet-richstr.phpt" role="test" />
+		<file name="125-sheet-removepicture.phpt" role="test" />
+		<file name="126-sheet-filledrowcol.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

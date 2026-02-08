@@ -21,8 +21,8 @@ Numbers, etc...
   </lead>
   <date>2026-02-08</date>
   <version>
-    <release>1.2.0</release>
-    <api>1.2.0</api>
+    <release>1.3.0</release>
+    <api>1.3.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -212,6 +212,10 @@ Numbers, etc...
 		<file name="148-table-columns.phpt" role="test" />
 		<file name="149-table-autofilter.phpt" role="test" />
 		<file name="150-table-construct.phpt" role="test" />
+		<file name="151-book-setpassword.phpt" role="test" />
+		<file name="152-book-loadinforaw.phpt" role="test" />
+		<file name="153-book-errorcode-clear.phpt" role="test" />
+		<file name="154-book-sheet-condformat.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

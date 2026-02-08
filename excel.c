@@ -1707,6 +1707,123 @@ EXCEL_METHOD(Book, removeAllPhonetics)
 /* }}} */
 #endif
 
+#if LIBXL_VERSION >= 0x05000000
+/* {{{ proto void ExcelBook::setPassword(string password)
+	Sets the password for the workbook. */
+EXCEL_METHOD(Book, setPassword)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_string *password;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &password) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	xlBookSetPassword(book, ZSTR_VAL(password));
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x05000100
+/* {{{ proto bool ExcelBook::loadInfoRaw(string data)
+	Load only info (sheet names, etc.) from raw data in memory. */
+EXCEL_METHOD(Book, loadInfoRaw)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_string *data_zs = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &data_zs) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	EXCEL_NON_EMPTY_STRING(data_zs)
+
+	BOOK_FROM_OBJECT(book, object);
+
+	RETURN_BOOL(xlBookLoadInfoRaw(book, ZSTR_VAL(data_zs), ZSTR_LEN(data_zs)));
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x05010000
+/* {{{ proto int ExcelBook::errorCode()
+	Returns the error code of the last operation. */
+EXCEL_METHOD(Book, errorCode)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_LONG(xlBookErrorCode(book));
+}
+/* }}} */
+
+/* {{{ proto ExcelConditionalFormat|false ExcelBook::conditionalFormat(int index)
+	Returns a conditional format at the specified index. */
+EXCEL_METHOD(Book, conditionalFormat)
+{
+	BookHandle book;
+	zval *object = getThis();
+	zend_long index;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+
+	ConditionalFormatHandle cf = xlBookConditionalFormat(book, (int)index);
+	if (!cf) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_condformat(excel_ce_condformat));
+	excel_condformat_object *cfo = Z_EXCEL_CONDFORMAT_OBJ_P(return_value);
+	cfo->condformat = cf;
+	cfo->book = book;
+}
+/* }}} */
+
+/* {{{ proto int ExcelBook::conditionalFormatSize()
+	Returns the number of conditional formats in the workbook. */
+EXCEL_METHOD(Book, conditionalFormatSize)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	RETURN_LONG(xlBookConditionalFormatSize(book));
+}
+/* }}} */
+
+/* {{{ proto void ExcelBook::clear()
+	Clears the workbook. */
+EXCEL_METHOD(Book, clear)
+{
+	BookHandle book;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	BOOK_FROM_OBJECT(book, object);
+	xlBookClear(book);
+}
+/* }}} */
+#endif
+
 /* {{{ proto int ExcelFont::size([int size])
 	Get or set the font size */
 EXCEL_METHOD(Font, size)
@@ -3648,6 +3765,75 @@ EXCEL_METHOD(Sheet, applyFilter2)
 	}
 
 	xlSheetApplyFilter2(sheet, afo->autofilter);
+}
+/* }}} */
+#endif
+
+#if LIBXL_VERSION >= 0x05010000
+/* Fix buggy macros in libxl.h v5.1.0 */
+#undef xlSheetRemoveConditionalFormatting
+#define xlSheetRemoveConditionalFormatting xlSheetRemoveConditionalFormattingA
+#undef xlSheetConditionalFormattingSize
+#define xlSheetConditionalFormattingSize xlSheetConditionalFormattingSizeA
+
+/* {{{ proto ExcelConditionalFormatting|false ExcelSheet::conditionalFormatting(int index)
+	Returns a conditional formatting object at the specified index. */
+EXCEL_METHOD(Sheet, conditionalFormatting)
+{
+	SheetHandle sheet;
+	BookHandle book;
+	zval *object = getThis();
+	zend_long index;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	ConditionalFormattingHandle cfh = xlSheetConditionalFormatting(sheet, (int)index);
+	if (!cfh) {
+		RETURN_FALSE;
+	}
+
+	ZVAL_OBJ(return_value, excel_object_new_condformatting(excel_ce_condformatting));
+	excel_condformatting_object *cfo = Z_EXCEL_CONDFORMATTING_OBJ_P(return_value);
+	cfo->condformatting = cfh;
+	cfo->sheet = sheet;
+	cfo->book = book;
+}
+/* }}} */
+
+/* {{{ proto bool ExcelSheet::removeConditionalFormatting(int index)
+	Removes a conditional formatting at the specified index. */
+EXCEL_METHOD(Sheet, removeConditionalFormatting)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+	zend_long index;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	RETURN_BOOL(xlSheetRemoveConditionalFormatting(sheet, (int)index));
+}
+/* }}} */
+
+/* {{{ proto int ExcelSheet::conditionalFormattingSize()
+	Returns the number of conditional formatting objects in the sheet. */
+EXCEL_METHOD(Sheet, conditionalFormattingSize)
+{
+	SheetHandle sheet;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+	RETURN_LONG(xlSheetConditionalFormattingSize(sheet));
 }
 /* }}} */
 #endif
@@ -8001,6 +8187,44 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_applyFilter2, 0, 0, 1)
 ZEND_END_ARG_INFO()
 #endif
 
+#if LIBXL_VERSION >= 0x05000000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_setPassword, 0, 0, 1)
+	ZEND_ARG_INFO(0, password)
+ZEND_END_ARG_INFO()
+#endif
+
+#if LIBXL_VERSION >= 0x05000100
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_loadInfoRaw, 0, 0, 1)
+	ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
+#endif
+
+#if LIBXL_VERSION >= 0x05010000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_errorCode, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_conditionalFormat, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_conditionalFormatSize, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_clear, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_conditionalFormatting, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removeConditionalFormatting, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_conditionalFormattingSize, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#endif
+
 zend_function_entry excel_funcs_book[] = {
 	EXCEL_ME(Book, requiresKey, arginfo_Book_requiresKey, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	EXCEL_ME(Book, addFont, arginfo_Book_addFont, 0)
@@ -8080,6 +8304,18 @@ zend_function_entry excel_funcs_book[] = {
 #if LIBXL_VERSION >= 0x04050000
 	EXCEL_ME(Book, coreProperties, arginfo_Book_coreProperties, 0)
 	EXCEL_ME(Book, removeAllPhonetics, arginfo_Book_removeAllPhonetics, 0)
+#endif
+#if LIBXL_VERSION >= 0x05000000
+	EXCEL_ME(Book, setPassword, arginfo_Book_setPassword, 0)
+#endif
+#if LIBXL_VERSION >= 0x05000100
+	EXCEL_ME(Book, loadInfoRaw, arginfo_Book_loadInfoRaw, 0)
+#endif
+#if LIBXL_VERSION >= 0x05010000
+	EXCEL_ME(Book, errorCode, arginfo_Book_errorCode, 0)
+	EXCEL_ME(Book, conditionalFormat, arginfo_Book_conditionalFormat, 0)
+	EXCEL_ME(Book, conditionalFormatSize, arginfo_Book_conditionalFormatSize, 0)
+	EXCEL_ME(Book, clear, arginfo_Book_clear, 0)
 #endif
 	PHP_FE_END
 };
@@ -8279,6 +8515,11 @@ zend_function_entry excel_funcs_sheet[] = {
 	EXCEL_ME(Sheet, getTableByIndex, arginfo_Sheet_getTableByIndex, 0)
 	EXCEL_ME(Sheet, tableSize, arginfo_Sheet_tableSize, 0)
 	EXCEL_ME(Sheet, applyFilter2, arginfo_Sheet_applyFilter2, 0)
+#endif
+#if LIBXL_VERSION >= 0x05010000
+	EXCEL_ME(Sheet, conditionalFormatting, arginfo_Sheet_conditionalFormatting, 0)
+	EXCEL_ME(Sheet, removeConditionalFormatting, arginfo_Sheet_removeConditionalFormatting, 0)
+	EXCEL_ME(Sheet, conditionalFormattingSize, arginfo_Sheet_conditionalFormattingSize, 0)
 #endif
 	PHP_FE_END
 };
@@ -8758,6 +8999,94 @@ PHP_MINIT_FUNCTION(excel)
 	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_CURRENCY", CELLSTYLE_CURRENCY);
 	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_CURRENCY0", CELLSTYLE_CURRENCY0);
 	REGISTER_EXCEL_CLASS_CONST_LONG(book, "CELLSTYLE_PERCENT", CELLSTYLE_PERCENT);
+#endif
+
+#if LIBXL_VERSION >= 0x05010000
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_OK", ERRCODE_OK);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_INCORRECTPASSWORD", ERRCODE_INCORRECTPASSWORD);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_ROWOUTOFRANGE", ERRCODE_ROWOUTOFRANGE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_COLOUTOFRANGE", ERRCODE_COLOUTOFRANGE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_INDEXOUTOFRANGE", ERRCODE_INDEXOUTOFRANGE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_INDEXNOSENSE", ERRCODE_INDEXNOSENSE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_LASTSHEET", ERRCODE_LASTSHEET);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_SHEETNOTFOUND", ERRCODE_SHEETNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NAMECUTOFF", ERRCODE_NAMECUTOFF);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FORMULASYNTAXERROR", ERRCODE_FORMULASYNTAXERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_SHEETNAMEINVALID", ERRCODE_SHEETNAMEINVALID);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FILENAMEINVALID", ERRCODE_FILENAMEINVALID);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NAMEALREADYEXIST", ERRCODE_NAMEALREADYEXIST);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FILENOTAVAILABLE", ERRCODE_FILENOTAVAILABLE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FILEFORMATNOTSUPPORTED", ERRCODE_FILEFORMATNOTSUPPORTED);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FUNCNOTSUPPORTEDFORXLS", ERRCODE_FUNCNOTSUPPORTEDFORXLS);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FUNCNOTSUPPORTEDFORXLSX", ERRCODE_FUNCNOTSUPPORTEDFORXLSX);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_LOADEDONLYINFO", ERRCODE_LOADEDONLYINFO);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FONTSIZEOUTOFRANGE", ERRCODE_FONTSIZEOUTOFRANGE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NOFONTS", ERRCODE_NOFONTS);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_STRINGTOOLONG", ERRCODE_STRINGTOOLONG);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_STRINGNULL", ERRCODE_STRINGNULL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_AUTOFILTERNULL", ERRCODE_AUTOFILTERNULL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_OUTLINELEVELEXCEEDED", ERRCODE_OUTLINELEVELEXCEEDED);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_LOCALEERROR", ERRCODE_LOCALEERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_XMLERROR", ERRCODE_XMLERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_BIFFRECERROR", ERRCODE_BIFFRECERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_IOERROR", ERRCODE_IOERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CONSISTENCYERROR", ERRCODE_CONSISTENCYERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_OUTOFMEMORY", ERRCODE_OUTOFMEMORY);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_UNKNOWNSTYLE", ERRCODE_UNKNOWNSTYLE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FORMATNULL", ERRCODE_FORMATNULL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FORMATNOTFOUND", ERRCODE_FORMATNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PARENTFORMATNOTFOUND", ERRCODE_PARENTFORMATNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FONTNOTFOUND", ERRCODE_FONTNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_TABLENOTFOUND", ERRCODE_TABLENOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_RICHSTRINGNOTFOUND", ERRCODE_RICHSTRINGNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PROPNOTFOUND", ERRCODE_PROPNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_UNKNOWNCHAR", ERRCODE_UNKNOWNCHAR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CHARNOTALLOWED", ERRCODE_CHARNOTALLOWED);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CELLNOTFOUND", ERRCODE_CELLNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CELLNOTMERGED", ERRCODE_CELLNOTMERGED);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CELLTYPEINCORRECT", ERRCODE_CELLTYPEINCORRECT);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_HEIGHTTOOHIGH", ERRCODE_HEIGHTTOOHIGH);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICERROR", ERRCODE_PICERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICPOSERROR", ERRCODE_PICPOSERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICNOTFOUND", ERRCODE_PICNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICSIZEINCORRECT", ERRCODE_PICSIZEINCORRECT);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICOFFSETEXCEED_XY", ERRCODE_PICOFFSETEXCEED_XY);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICOFFSETEXCEED_Y", ERRCODE_PICOFFSETEXCEED_Y);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PICOFFSETEXCEED_X", ERRCODE_PICOFFSETEXCEED_X);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NOFREECOLORINDEX", ERRCODE_NOFREECOLORINDEX);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_COLORINVALID", ERRCODE_COLORINVALID);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PRINTTITLESNOTFOUND", ERRCODE_PRINTTITLESNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NAMEDRANGENOTFOUND", ERRCODE_NAMEDRANGENOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NAMEDRANGESKIPPED", ERRCODE_NAMEDRANGESKIPPED);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PAGEBREAKALREADYEXIST", ERRCODE_PAGEBREAKALREADYEXIST);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PAGEBREAKNOTFOUND", ERRCODE_PAGEBREAKNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_PAGEBREAKLIMIT", ERRCODE_PAGEBREAKLIMIT);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_IGNOREDERRALREADYEXIST", ERRCODE_IGNOREDERRALREADYEXIST);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_OVERLAP", ERRCODE_OVERLAP);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_SHEETNOTSPLITTED", ERRCODE_SHEETNOTSPLITTED);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_DIRENTRYINCORRECTNAME", ERRCODE_DIRENTRYINCORRECTNAME);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_REFINVALID", ERRCODE_REFINVALID);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_REFNOTFOUND", ERRCODE_REFNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_DATEINVALID", ERRCODE_DATEINVALID);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_XLSERROR", ERRCODE_XLSERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CONVERROR", ERRCODE_CONVERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_TOOMANYFORMATS", ERRCODE_TOOMANYFORMATS);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_TOOMANYFONTS", ERRCODE_TOOMANYFONTS);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NOSTYLES", ERRCODE_NOSTYLES);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_NOID", ERRCODE_NOID);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FILTERCOLUMNNULL", ERRCODE_FILTERCOLUMNNULL);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FILTERVALUENOTFOUND", ERRCODE_FILTERVALUENOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_FILTERNOTFOUND", ERRCODE_FILTERNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_DATAVALIDNOTFOUND", ERRCODE_DATAVALIDNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_ACTIVECELLNOTFOUND", ERRCODE_ACTIVECELLNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_HYPERLINKNOTFOUND", ERRCODE_HYPERLINKNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_SORTNOTFOUND", ERRCODE_SORTNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_CONTROLNOTFOUND", ERRCODE_CONTROLNOTFOUND);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_AUTOFITERROR", ERRCODE_AUTOFITERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_VALUEOUTOFRANGE", ERRCODE_VALUEOUTOFRANGE);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_ZIPERROR", ERRCODE_ZIPERROR);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_EXCEPTION", ERRCODE_EXCEPTION);
+	REGISTER_EXCEL_CLASS_CONST_LONG(book, "ERRCODE_TRIALLIMIT", ERRCODE_TRIALLIMIT);
 #endif
 
 	excel_richstring_register();

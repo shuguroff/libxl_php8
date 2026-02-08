@@ -24,5 +24,13 @@ Makefile.objects
 libtool
 run-tests.php
 
+# Артефакты make test
+tests/*.diff
+tests/*.log
+tests/*.out
+tests/*.exp
+tests/*.sh
+tests/*.php
+
 # Локальная копия LibXL
 libxl-mac/

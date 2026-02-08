@@ -1,9 +1,0 @@
-
----- EXPECTED OUTPUT
-bool(true)
-bool(true)
-bool(true)
-OK
----- ACTUAL OUTPUT
-Termsig=11
----- FAILED

@@ -220,6 +220,32 @@ php --ini | head -1
 > **Note:** The absolute path to `libxl-mac/lib/libxl.dylib` is embedded in `excel.so`.
 > If you move the `libxl-mac` directory, you will need to rebuild the extension.
 
+## Updating LibXL
+
+The PHP extension is compiled and linked against a specific version of LibXL. When you update the LibXL library, you **must rebuild** the extension from scratch.
+
+**Docker:**
+
+```bash
+# Replace the libxl directory with the new version, then rebuild
+docker compose build php83
+docker compose up php83
+```
+
+**Manual (native):**
+
+```bash
+make clean
+phpize --clean
+phpize
+./configure --with-libxl-incdir=/path/to/libxl/include_c \
+            --with-libxl-libdir=/path/to/libxl/lib
+make
+make install
+```
+
+> Simply replacing the `.so`/`.dylib` file without rebuilding is **not supported** — ABI changes between LibXL versions may cause crashes or undefined behavior.
+
 ## Quick Start
 
 ```php

@@ -18,8 +18,7 @@ $sheet->write(1, 1, 10);
 $sheet->write(2, 0, 'B');
 $sheet->write(2, 1, 20);
 
-// Create autofilter via constructor (Sheet::autoFilter() has a known RETURN_TRUE bug)
-$autoFilter = new ExcelAutoFilter($sheet);
+$autoFilter = $sheet->autoFilter();
 $autoFilter->setRef(0, 2, 0, 1);
 
 // addSort() returns bool

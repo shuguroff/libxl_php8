@@ -6146,8 +6146,6 @@ EXCEL_METHOD(Sheet, autoFilter)
 	obj = Z_EXCEL_AUTOFILTER_OBJ_P(return_value);
 	obj->autofilter = ah;
 	obj->sheet = sheet;
-
-	RETURN_TRUE;
 }
 /* }}} */
 

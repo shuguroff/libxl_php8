@@ -34,9 +34,10 @@ class ExcelFilterColumn
 	*
 	* @see ExcelAutoFilter::column()
 	* @param ExcelAutoFilter $autoFilter
+	* @param int $colId Zero-based column index
 	* @return ExcelFilterColumn
 	*/
-	public function __construct(ExcelAutoFilter $autoFilter)
+	public function __construct(ExcelAutoFilter $autoFilter, int $colId)
 	{
 	} // __construct
 

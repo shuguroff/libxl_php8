@@ -64,14 +64,43 @@ This project is based on the work of many contributors:
 
 ## Installation
 
-### 1. Clone the Repository
+Both PIE and PECL methods require the [LibXL](http://www.libxl.com/) library to be installed on your system first (see [Requirements](#requirements)).
+
+### Installation via PIE (Recommended)
+
+[PIE](https://github.com/php/pie) is the modern PHP extension installer:
+
+```bash
+pie install shuguroff/libxl-php \
+    --with-libxl-incdir=/opt/libxl/include_c \
+    --with-libxl-libdir=/opt/libxl/lib64
+```
+
+### Installation via PECL
+
+Download the `.tgz` package from [GitHub Releases](https://github.com/shuguroff/libxl_php8/releases) and install:
+
+```bash
+pecl install https://github.com/shuguroff/libxl_php8/releases/download/v1.3.0/excel-1.3.0.tgz
+```
+
+If you need to pass configure options:
+
+```bash
+pecl install excel-1.3.0.tgz --configureoptions \
+    'with-libxl-incdir="/opt/libxl/include_c" with-libxl-libdir="/opt/libxl/lib64"'
+```
+
+### Building from Source
+
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/shuguroff/libxl_php8.git
 cd libxl_php8
 ```
 
-### 2a. Using Docker (Recommended for Testing)
+#### 2a. Using Docker (Recommended for Testing)
 
 Requires [Docker](https://docs.docker.com/get-docker/) with Docker Compose.
 
@@ -98,7 +127,7 @@ LIBXL_LICENSE_NAME="Your Name" LIBXL_LICENSE_KEY="your-key" docker compose build
 docker compose up
 ```
 
-### 2b. Manual Build on Linux
+#### 2b. Manual Build on Linux
 
 Install prerequisites:
 
@@ -154,7 +183,7 @@ echo "extension=excel.so" | sudo tee /etc/php/conf.d/excel.ini
 | Linux ARM32 | `lib-armhf` |
 | Linux x86 | `lib` |
 
-### 2c. Manual Build on macOS
+#### 2c. Manual Build on macOS
 
 Install prerequisites:
 

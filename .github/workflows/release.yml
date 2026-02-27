@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: pear
+
+      - name: Build PECL package
+        run: pear package package.xml
+
+      - name: Get package filename
+        id: pkg
+        run: |
+          PKG=$(ls excel-*.tgz)
+          echo "file=$PKG" >> "$GITHUB_OUTPUT"
+          echo "Package: $PKG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "${{ steps.pkg.outputs.file }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes

@@ -1,3 +1,33 @@
+[2026-02-27] - Version 1.3.0
+	* LibXL 4.0.0–5.1.0 API support
+	* New classes: ExcelFormControl, ExcelConditionalFormat, ExcelConditionalFormatting,
+	  ExcelCoreProperties, ExcelTable
+	* Book: errorCode(), clear(), setPassword(), loadInfoRaw(), conditionalFormat(),
+	  addConditionalFormat(), dpiAwareness(), removeVBA(), removePrinterSettings(),
+	  addFormatFromStyle(), coreProperties(), removeAllPhonetics()
+	* Sheet: conditionalFormatting(), formControl(), addTable(), setBorder(),
+	  activeCell(), tabColor(), colFormat(), rowFormat(), hyperlinkIndex(),
+	  setColPx(), setRowPx(), applyFilter2()
+	* PIE and PECL installation support
+	* Added config.w32 for Windows builds
+
+[2026-02-10] - Version 1.2.0
+	* LibXL 3.9.0–3.9.4 API support
+	* New class: ExcelRichString (addFont, addText, addCR, release)
+	* Book: calcMode(), setCalcMode(), addRichString()
+	* Sheet: readRichStr(), writeRichStr(), isRichStr(),
+	  removePicture(), removePictureByIndex()
+	* Sheet: firstFilledRow(), lastFilledRow(), firstFilledCol(), lastFilledCol()
+
+[2026-02-06] - Version 1.1.0
+	* PHP 8.2+ required (dropped PHP 7.x support)
+	* Switched from E_WARNING to ExcelException
+	* Added XLSX format checks for XLSX-only features
+	* Memory safety fixes (writeError NULL check, ZVAL_UNDEF)
+	* Named constants for formatting limits (EXCEL_MAX_INDENT, EXCEL_MAX_ROTATION)
+	* Multi-file architecture (excel_richstring.c, excel_formcontrol.c,
+	  excel_condformat.c, excel_coreprops.c, excel_table.c)
+
 [2018-??-??] - Version 1.0.3dev
 	* Fixed crash when trying to read an empty file
 	* Fixed bug with writing references (see issue #234)

@@ -1,0 +1,34 @@
+{
+    "name": "shuguroff/libxl-php",
+    "type": "php-ext",
+    "license": "PHP-3.01",
+    "description": "PHP extension for reading/writing Excel files (XLS/XLSX) via LibXL library",
+    "require": {
+        "php": ">=8.2"
+    },
+    "php-ext": {
+        "extension-name": "excel",
+        "configure-options": [
+            {
+                "name": "with-excel",
+                "description": "Enable excel support",
+                "needs-value": false
+            },
+            {
+                "name": "with-libxl-incdir",
+                "description": "Path to LibXL C header files (directory containing libxl.h)",
+                "needs-value": true
+            },
+            {
+                "name": "with-libxl-libdir",
+                "description": "Path to LibXL shared library (directory containing libxl.so/.dylib)",
+                "needs-value": true
+            },
+            {
+                "name": "with-libxml-dir",
+                "description": "Path to libxml2 install prefix",
+                "needs-value": true
+            }
+        ]
+    }
+}

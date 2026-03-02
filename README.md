@@ -4,9 +4,9 @@ PHP extension for reading and writing Excel files using the [LibXL](http://www.l
 
 ## About This Fork
 
-This is a modernized fork with **full PHP 8.x support** and compatibility with **LibXL 5.x**.
+This is a modernized fork with **PHP 7.4+ and 8.x support** and compatibility with **LibXL 5.x**.
 
-**Minimum requirement: PHP 8.2.** For older PHP versions use the repositories of the previous authors (see below).
+**Minimum requirement: PHP 7.4.** For older PHP versions use the repositories of the previous authors (see below).
 
 ### Changes in This Fork
 
@@ -26,7 +26,7 @@ This is a modernized fork with **full PHP 8.x support** and compatibility with *
 
 - **Docker Support:**
   - Added `Dockerfile` for building and testing
-  - Added `docker-compose.yml` for multi-version PHP testing (8.2–8.5)
+  - Added `docker-compose.yml` for multi-version PHP testing (7.4, 8.2–8.5)
 
 ### Migration performed by
 
@@ -59,7 +59,7 @@ This project is based on the work of many contributors:
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 7.4+
 - [LibXL](http://www.libxl.com/) 3.6.0+ (commercial library, trial version available)
 
 ## Installation
@@ -115,7 +115,7 @@ rm libxl.tar.gz
 docker compose build php83
 docker compose up php83
 
-# Or test on all PHP versions (8.2, 8.3, 8.4, 8.5)
+# Or test on all PHP versions (7.4, 8.2, 8.3, 8.4, 8.5)
 docker compose build
 docker compose up
 ```

@@ -2,6 +2,7 @@
 #
 # Usage:
 #   docker compose build              # build all images (without license)
+#   docker compose up php74           # test on PHP 7.4
 #   docker compose up php83           # test on PHP 8.3
 #   docker compose up php84           # test on PHP 8.4
 #   docker compose up php85           # test on PHP 8.5
@@ -14,6 +15,15 @@
 # For x86-64 libraries on Apple Silicon, Rosetta emulation is used.
 
 services:
+  php74:
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        PHP_VERSION: "7.4"
+        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+
   php82:
     platform: linux/amd64
     build:
@@ -22,9 +32,6 @@ services:
         PHP_VERSION: "8.2"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
-    volumes:
-      - ./examples:/var/www/html/
-    working_dir: /var/www/html
 
   php83:
     platform: linux/amd64
@@ -34,9 +41,6 @@ services:
         PHP_VERSION: "8.3"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
-    volumes:
-      - ./examples:/var/www/html/
-    working_dir: /var/www/html
 
   php84:
     platform: linux/amd64
@@ -46,9 +50,6 @@ services:
         PHP_VERSION: "8.4"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
-    volumes:
-      - ./examples:/var/www/html/
-    working_dir: /var/www/html
 
   php85:
     platform: linux/amd64
@@ -58,6 +59,3 @@ services:
         PHP_VERSION: "8.5"
         LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
         LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
-    volumes:
-      - ./examples:/var/www/html/
-    working_dir: /var/www/html

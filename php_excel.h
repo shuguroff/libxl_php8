@@ -63,6 +63,11 @@ typedef bool zend_bool;
 # endif
 #endif
 
+/* PHP 7.x compatibility: RETURN_THROWS() was added in PHP 8.0 */
+#if PHP_MAJOR_VERSION < 8
+# define RETURN_THROWS() return
+#endif
+
 #ifndef PHP_FE_END
 # define PHP_FE_END {NULL, NULL, NULL}
 #endif

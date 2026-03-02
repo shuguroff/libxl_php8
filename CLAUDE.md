@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 libxl_php8 — PHP-расширение (PECL-style) для работы с Excel-файлами через библиотеку LibXL. Форк с полной поддержкой PHP 8.x и LibXL 5.x.
 
-**Требования:** PHP 8.2+, LibXL 3.6.0+
+**Требования:** PHP 7.4+, LibXL 3.6.0+
 
 ## Build & Test (Docker only)
 

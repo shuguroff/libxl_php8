@@ -4,7 +4,7 @@
     "license": "PHP-3.01",
     "description": "PHP extension for reading/writing Excel files (XLS/XLSX) via LibXL library",
     "require": {
-        "php": ">=8.2"
+        "php": ">=7.4"
     },
     "php-ext": {
         "extension-name": "excel",

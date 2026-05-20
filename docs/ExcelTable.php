@@ -112,6 +112,20 @@ final class ExcelTable
     public function autoFilter(): ExcelAutoFilter|false {}
 
     /**
+     * Returns true if the AutoFilter already exists.
+     * Requires LibXL >= 5.2.0.
+     * @return bool
+     */
+    public function isAutoFilter(): bool {}
+
+    /**
+     * Removes the AutoFilter from the table.
+     * Requires LibXL >= 5.2.0.
+     * @return void
+     */
+    public function removeFilter(): void {}
+
+    /**
      * Returns the table style (one of TABLESTYLE_* constants).
      * @return int
      */

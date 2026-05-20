@@ -25,11 +25,11 @@ var_dump($result);
 // Test addDataValidation() with list
 $result = $sheet->addDataValidation(
     ExcelSheet::VALIDATION_TYPE_LIST,
-    ExcelSheet::VALIDATION_OP_BETWEEN,
+    ExcelSheet::VALIDATION_OP_EQUAL,
     1, 1,
     0, 0,
     'Option1,Option2,Option3',
-    null,
+    '',
     true,  // allow_blank
     false, // hide_dropdown
     true,  // show_inputmessage
@@ -49,7 +49,7 @@ $result = $sheet->addDataValidation(
     2, 2,
     0, 0,
     '50',
-    null
+    ''
 );
 var_dump($result);
 

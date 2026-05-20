@@ -19,10 +19,10 @@ Numbers, etc...
     <email>ilia@ilia.ws</email>
     <active>yes</active>
   </lead>
-  <date>2026-02-27</date>
+  <date>2026-05-20</date>
   <version>
-    <release>1.3.0</release>
-    <api>1.3.0</api>
+    <release>1.4.0</release>
+    <api>1.4.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -30,11 +30,13 @@ Numbers, etc...
   </stability>
   <license uri="http://www.php.net/license/3_01.txt">PHP</license>
   <notes>
-   Version 1.3.0
-   - LibXL 4.0.0–5.1.0 API support
+   Version 1.4.0
+   - LibXL 4.0.0–5.2.0 API support
    - New classes: ExcelFormControl, ExcelConditionalFormat, ExcelConditionalFormatting, ExcelCoreProperties, ExcelTable
    - Book: errorCode(), clear(), setPassword(), loadInfoRaw(), conditionalFormat(), addConditionalFormat(), etc.
-   - Sheet: conditionalFormatting(), formControl(), addTable(), setBorder(), activeCell(), tabColor(), etc.
+   - Sheet: dataValidation(), dataValidationSize(), isAutoFilter(), conditionalFormatting(), formControl(), addTable(), etc.
+   - Table: isAutoFilter(), removeFilter()
+   - AutoFilter: sortLevels(), getSort(level)
    - PIE and PECL installation support
   </notes>
   <contents>
@@ -218,6 +220,10 @@ Numbers, etc...
 		<file name="152-book-loadinforaw.phpt" role="test" />
 		<file name="153-book-errorcode-clear.phpt" role="test" />
 		<file name="154-book-sheet-condformat.phpt" role="test" />
+		<file name="155-sheet-datavalidation-read.phpt" role="test" />
+		<file name="156-table-filter-52.phpt" role="test" />
+		<file name="157-autofilter-sortlevels.phpt" role="test" />
+		<file name="158-book-loadwithoutemptycells-xlsx.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

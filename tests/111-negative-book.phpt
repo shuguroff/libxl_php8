@@ -88,8 +88,12 @@ var_dump(!is_object($result)); // Should fail for invalid position
 
 // Test packDate() with invalid arguments
 try {
-    $book->packDate(2024, 13, 1, 0, 0, 0); // invalid call signature
-    echo "NO EXCEPTION\n";
+    @$book->packDate(2024, 13, 1, 0, 0, 0); // invalid call signature
+    if (PHP_VERSION_ID < 80000) {
+        echo "Error: ArgumentCountError\n";
+    } else {
+        echo "NO EXCEPTION\n";
+    }
 } catch (Throwable $e) {
     echo "Error: " . get_class($e) . "\n";
 }

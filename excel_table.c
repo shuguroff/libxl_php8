@@ -172,6 +172,42 @@ EXCEL_METHOD(Table, autoFilter)
 }
 /* }}} */
 
+#if LIBXL_VERSION >= 0x05020000
+/* {{{ proto bool ExcelTable::isAutoFilter()
+	Returns true if the AutoFilter already exists. */
+EXCEL_METHOD(Table, isAutoFilter)
+{
+	TableHandle table;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	TABLE_FROM_OBJECT(table, object);
+
+	RETURN_BOOL(xlTableIsAutoFilter(table));
+}
+/* }}} */
+
+/* {{{ proto void ExcelTable::removeFilter()
+	Removes the AutoFilter from the table. */
+EXCEL_METHOD(Table, removeFilter)
+{
+	TableHandle table;
+	zval *object = getThis();
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	TABLE_FROM_OBJECT(table, object);
+
+	xlTableRemoveFilter(table);
+}
+/* }}} */
+#endif
+
 /* ----------------------------------------------------------------
    ExcelTable::style() / setStyle()
    ---------------------------------------------------------------- */
@@ -467,6 +503,10 @@ zend_function_entry excel_funcs_table[] = {
 	EXCEL_ME(Table, ref, arginfo_Table_noargs, 0)
 	EXCEL_ME(Table, setRef, arginfo_Table_setString, 0)
 	EXCEL_ME(Table, autoFilter, arginfo_Table_noargs, 0)
+#if LIBXL_VERSION >= 0x05020000
+	EXCEL_ME(Table, isAutoFilter, arginfo_Table_noargs, 0)
+	EXCEL_ME(Table, removeFilter, arginfo_Table_noargs, 0)
+#endif
 	EXCEL_ME(Table, style, arginfo_Table_noargs, 0)
 	EXCEL_ME(Table, setStyle, arginfo_Table_setStyle, 0)
 	EXCEL_ME(Table, showRowStripes, arginfo_Table_noargs, 0)

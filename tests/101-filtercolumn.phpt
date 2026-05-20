@@ -27,7 +27,7 @@ $sheet->write(3, 1, 30);
 
 // Get autofilter and set range
 $autoFilter = $sheet->autoFilter();
-$autoFilter->setRef(0, 0, 3, 1);
+$autoFilter->setRef(0, 3, 0, 1);
 
 // Get filter column
 $filterColumn = $autoFilter->column(0);
@@ -88,7 +88,7 @@ var_dump($customFilter['operator_1'] === ExcelFilterColumn::OPERATOR_GREATER_THA
 var_dump($customFilter['value_1']);
 var_dump($customFilter['operator_2'] === ExcelFilterColumn::OPERATOR_LESS_THAN);
 var_dump($customFilter['value_2']);
-var_dump($customFilter['andOp']);
+var_dump($customFilter['and_operator']);
 
 // Test filterType() - should be FILTER_CUSTOM after setCustomFilter
 var_dump($filterColumn2->filterType() === ExcelFilterColumn::FILTER_CUSTOM);

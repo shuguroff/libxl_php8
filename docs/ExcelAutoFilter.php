@@ -85,11 +85,22 @@ class ExcelAutoFilter
 	} // getSortRange
 
 	/**
+	* Gets the number of sort levels.
+	* Requires LibXL >= 5.2.0.
+	*
+	* @return int
+	*/
+	public function sortLevels()
+	{
+	} // sortLevels
+
+	/**
 	* Gets the zero-based index of sorted column in AutoFilter and its sort order.
 	*
+	* @param int $level Sort level (optional, default = 0; requires LibXL >= 5.2.0)
 	* @return array with keys "column_index"(int), "descending"(bool),
 	*/
-	public function getSort()
+	public function getSort($level = 0)
 	{
 	} // getSort
 

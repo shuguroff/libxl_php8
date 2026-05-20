@@ -15,7 +15,7 @@ $sheet = $book->addSheet('Sheet 3.7.0 Test');
 var_dump($sheet->setTabColor(ExcelFormat::COLOR_RED));
 
 // Test setTabRgbColor() - set tab color using RGB value
-var_dump($sheet->setTabRgbColor(0x00FF00)); // Green
+var_dump($sheet->setTabRgbColor(0, 255, 0)); // Green
 
 // Write some data
 $sheet->write(0, 0, 'Header');
@@ -27,7 +27,7 @@ $autoFilter = $sheet->autoFilter();
 var_dump($autoFilter instanceof ExcelAutoFilter);
 
 // Set autofilter range
-$autoFilter->setRef(0, 0, 2, 0);
+$autoFilter->setRef(0, 2, 0, 0);
 
 // Test applyFilter()
 var_dump($sheet->applyFilter());

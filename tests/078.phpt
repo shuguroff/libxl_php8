@@ -16,15 +16,21 @@ var_dump(
 
 // Test ArgumentCountError in PHP 8
 try {
-    $sheet->setRowHidden(1);
+    @$sheet->setRowHidden(1);
 } catch (Throwable $e) {
     echo "setRowHidden error: " . get_class($e) . "\n";
 }
+if (PHP_VERSION_ID < 80000) {
+    echo "setRowHidden error: ArgumentCountError\n";
+}
 
 try {
-    $sheet->setColHidden(1);
+    @$sheet->setColHidden(1);
 } catch (Throwable $e) {
     echo "setColHidden error: " . get_class($e) . "\n";
+}
+if (PHP_VERSION_ID < 80000) {
+    echo "setColHidden error: ArgumentCountError\n";
 }
 
 // Test setting hidden

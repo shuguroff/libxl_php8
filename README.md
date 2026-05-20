@@ -23,6 +23,7 @@ This is a modernized fork with **PHP 7.4+ and 8.x support** and compatibility wi
 
 - **LibXL 5.x Compatibility:**
   - Fixed `const char**` type incompatibility in `xlFilterColumnGetCustomFilter`
+  - Added LibXL 5.2.0 API wrappers for data validations, table filters, and AutoFilter sort levels
 
 - **Docker Support:**
   - Added `Dockerfile` for building and testing
@@ -81,13 +82,13 @@ pie install shuguroff/libxl-php \
 Download the `.tgz` package from [GitHub Releases](https://github.com/shuguroff/libxl_php8/releases) and install:
 
 ```bash
-pecl install https://github.com/shuguroff/libxl_php8/releases/download/v1.3.0/excel-1.3.0.tgz
+pecl install https://github.com/shuguroff/libxl_php8/releases/download/v1.4.0/excel-1.4.0.tgz
 ```
 
 If you need to pass configure options:
 
 ```bash
-pecl install excel-1.3.0.tgz --configureoptions \
+pecl install excel-1.4.0.tgz --configureoptions \
     'with-libxl-incdir="/opt/libxl/include_c" with-libxl-libdir="/opt/libxl/lib64"'
 ```
 
@@ -106,9 +107,9 @@ Requires [Docker](https://docs.docker.com/get-docker/) with Docker Compose.
 
 ```bash
 # Download LibXL for Linux (x86_64)
-curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-lin-5.1.0.tar.gz"
+curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-lin-5.2.0.1.tar.gz"
 tar -xzf libxl.tar.gz
-mv libxl-5.1.0 libxl
+mv libxl-5.2.0.1 libxl
 rm libxl.tar.gz
 
 # Build and test on a specific PHP version
@@ -142,9 +143,9 @@ sudo dnf install php-devel libxml2-devel make gcc
 Download and install LibXL:
 
 ```bash
-curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-lin-5.1.0.tar.gz"
+curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-lin-5.2.0.1.tar.gz"
 tar -xzf libxl.tar.gz
-sudo mv libxl-5.1.0 /opt/libxl
+sudo mv libxl-5.2.0.1 /opt/libxl
 rm libxl.tar.gz
 
 # Make the library available system-wide
@@ -198,9 +199,9 @@ phpize --version
 Download and extract LibXL for macOS:
 
 ```bash
-curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-mac-5.1.0.tar.gz"
+curl -L -o libxl.tar.gz "https://www.libxl.com/download/libxl-mac-5.2.0.1.tar.gz"
 tar -xzf libxl.tar.gz
-mv libxl-5.1.0 libxl-mac
+mv libxl-5.2.0.1 libxl-mac
 rm libxl.tar.gz
 ```
 

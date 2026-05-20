@@ -278,6 +278,15 @@ class ExcelSheet
 	} // autoFilter
 
 	/**
+	* Returns true if the AutoFilter already exists.
+	*
+	* @return bool
+	*/
+	public function isAutoFilter()
+	{
+	} // isAutoFilter
+
+	/**
 	* Applies the AutoFilter to the sheet.
 	*
 	* @return bool
@@ -1128,6 +1137,27 @@ class ExcelSheet
 	public function removeDataValidations()
 	{
 	} // removeDataValidations
+
+	/**
+	* Returns the number of data validations in the sheet (only for xlsx files).
+	*
+	* Requires LibXL >= 5.2.0.
+	* @return int
+	*/
+	public function dataValidationSize()
+	{
+	} // dataValidationSize
+
+	/**
+	* Returns the data validation details by index (only for xlsx files).
+	*
+	* Requires LibXL >= 5.2.0.
+	* @param int $index 0-based
+	* @return array|false
+	*/
+	public function dataValidation($index)
+	{
+	} // dataValidation
 
 	/**
 	* Remove rows from row_start to row_end

@@ -32,9 +32,10 @@ $sheet->write(3, 2, 'Chicago');
 // Get autofilter object
 $autoFilter = $sheet->autoFilter();
 var_dump($autoFilter instanceof ExcelAutoFilter);
+var_dump($sheet->isAutoFilter());
 
 // Test setRef() and getRef()
-$autoFilter->setRef(0, 0, 3, 2);
+$autoFilter->setRef(0, 3, 0, 2);
 $ref = $autoFilter->getRef();
 var_dump($ref['row_first']);
 var_dump($ref['row_last']);
@@ -61,16 +62,19 @@ var_dump($sort['descending']);
 // Test getSortRange()
 $sortRange = $autoFilter->getSortRange();
 var_dump(is_array($sortRange));
+var_dump($sortRange['col_last']);
 
 // Test applyFilter()
 var_dump($sheet->applyFilter());
 
 // Test removeFilter()
 var_dump($sheet->removeFilter());
+var_dump($sheet->isAutoFilter());
 
 echo "OK\n";
 ?>
 --EXPECT--
+bool(true)
 bool(true)
 int(0)
 int(3)
@@ -83,6 +87,8 @@ bool(true)
 int(1)
 bool(true)
 bool(true)
+int(2)
 bool(true)
 bool(true)
+bool(false)
 OK

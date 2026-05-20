@@ -112,7 +112,7 @@ class ExcelFilterColumn
 	/**
 	* Gets the custom filter criteria:
 	*
-	* @return array with keys "operator_1"(int), "value_1"(string), "operator_2"(int), "value_2"(string) and "andOp"(bool)
+	* @return array with keys "operator_1"(int), "value_1"(string), "operator_2"(int), "value_2"(string) and "and_operator"(bool)
 	*/
 	public function getCustomFilter()
 	{

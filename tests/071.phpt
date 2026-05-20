@@ -8,12 +8,15 @@ Book::packDateValues()
 
 	// Test missing arguments (ArgumentCountError in PHP 8)
 	try {
-		$x->packDateValues();
+		@$x->packDateValues();
 	} catch (Throwable $e) {
 		echo "Error: " . get_class($e) . "\n";
 	}
+	if (PHP_VERSION_ID < 80000) {
+		echo "Error: ArgumentCountError\n";
+	}
 
-	var_dump($x->packDateValues(2013, 10, 12, 1, 10, 30));
+	printf("float(%.6f)\n", $x->packDateValues(2013, 10, 12, 1, 10, 30));
 
 	try {
 		$x->packDateValues(-1, 10, 12, 1, 10, 30);
@@ -59,7 +62,7 @@ Book::packDateValues()
 ?>
 --EXPECTF--
 Error: ArgumentCountError
-float(41559.048958333%s)
+float(41559.048958)
 EXCEPTION: Invalid '-1' value for year
 bool(false)
 EXCEPTION: Invalid '-10' value for month

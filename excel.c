@@ -6149,6 +6149,25 @@ EXCEL_METHOD(Sheet, autoFilter)
 }
 /* }}} */
 
+/* {{{ proto bool ExcelSheet::isAutoFilter()
+	Returns true if the AutoFilter already exists. */
+EXCEL_METHOD(Sheet, isAutoFilter)
+{
+	zval *object = getThis();
+	SheetHandle sheet;
+	BookHandle book;
+
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
+
+	if (xlBookBiffVersion(book) != 0) {
+		zend_throw_exception(excel_ce_exception, "This feature requires XLSX format", 0);
+		RETURN_THROWS();
+	}
+
+	RETURN_BOOL(xlSheetIsAutoFilter(sheet));
+}
+/* }}} */
+
 /* {{{ proto long ExcelSheet::applyFilter()
 	Applies the AutoFilter to the sheet. */
 EXCEL_METHOD(Sheet, applyFilter)
@@ -6300,11 +6319,11 @@ EXCEL_METHOD(AutoFilter, getRef)
 {
 	zval *object = getThis();
 	AutoFilterHandle autofilter;
-	int rowFirst=0, colFirst=0, rowLast=0, colLast=0;
+	int rowFirst=0, rowLast=0, colFirst=0, colLast=0;
 
 	AUTOFILTER_FROM_OBJECT(autofilter, object);
 
-	if (!xlAutoFilterGetRef(autofilter, &rowFirst, &colFirst, &rowLast, &colLast)) {
+	if (!xlAutoFilterGetRef(autofilter, &rowFirst, &rowLast, &colFirst, &colLast)) {
 		RETURN_FALSE;
 	}
 
@@ -6312,7 +6331,7 @@ EXCEL_METHOD(AutoFilter, getRef)
 	add_assoc_long(return_value, "row_first", rowFirst);
 	add_assoc_long(return_value, "col_first", colFirst);
 	add_assoc_long(return_value, "row_last", rowLast);
-	add_assoc_long(return_value, "col_last", rowLast);
+	add_assoc_long(return_value, "col_last", colLast);
 }
 /* }}} */
 
@@ -6356,8 +6375,6 @@ EXCEL_METHOD(AutoFilter, column)
 	obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(return_value);
 	obj->autofilter = autofilter;
 	obj->filtercolumn = fch;
-
-	RETURN_TRUE;
 }
 /* }}} */
 
@@ -6395,8 +6412,6 @@ EXCEL_METHOD(AutoFilter, columnByIndex)
 	obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(return_value);
 	obj->autofilter = autofilter;
 	obj->filtercolumn = fch;
-
-	RETURN_TRUE;
 }
 /* }}} */
 
@@ -6418,9 +6433,28 @@ EXCEL_METHOD(AutoFilter, getSortRange)
 	add_assoc_long(return_value, "row_first", rowFirst);
 	add_assoc_long(return_value, "row_last", rowLast);
 	add_assoc_long(return_value, "col_first", colFirst);
-	add_assoc_long(return_value, "col_last", rowLast);
+	add_assoc_long(return_value, "col_last", colLast);
 }
 /* }}} */
+
+#if LIBXL_VERSION >= 0x05020000
+/* {{{ proto int AutoFilter::sortLevels()
+	Gets the number of sort levels. */
+EXCEL_METHOD(AutoFilter, sortLevels)
+{
+	zval *object = getThis();
+	AutoFilterHandle autofilter;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	AUTOFILTER_FROM_OBJECT(autofilter, object);
+
+	RETURN_LONG(xlAutoFilterSortLevels(autofilter));
+}
+/* }}} */
+#endif
 
 /* {{{ proto long AutoFilter::getSort()
 	Gets the zero-based index of sorted column in AutoFilter and its sort order. Returns 0 if error. */
@@ -6428,17 +6462,28 @@ EXCEL_METHOD(AutoFilter, getSort)
 {
 	zval *object = getThis();
 	AutoFilterHandle autofilter;
+	zend_long level = 0;
 	int columnIndex, descending;
 
-	AUTOFILTER_FROM_OBJECT(autofilter, object);
-
-	if (!xlAutoFilterGetSort(autofilter, &columnIndex, &descending)) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|l", &level) == FAILURE) {
 		RETURN_FALSE;
 	}
 
+	AUTOFILTER_FROM_OBJECT(autofilter, object);
+
+#if LIBXL_VERSION >= 0x05020000
+	if (!xlAutoFilterGetSortEx(autofilter, &columnIndex, &descending, (int)level)) {
+		RETURN_FALSE;
+	}
+#else
+	if (!xlAutoFilterGetSort(autofilter, &columnIndex, &descending)) {
+		RETURN_FALSE;
+	}
+#endif
+
 	array_init(return_value);
 	add_assoc_long(return_value, "column_index", columnIndex);
-	add_assoc_long(return_value, "descending", descending);
+	add_assoc_bool(return_value, "descending", descending);
 }
 /* }}} */
 
@@ -6859,6 +6904,69 @@ EXCEL_METHOD(Sheet, removeDataValidations)
 	RETURN_TRUE;
 }
 /* }}} */
+
+#if LIBXL_VERSION >= 0x05020000
+/* {{{ proto int Sheet::dataValidationSize()
+	Returns a number of data validations in this worksheet (only for xlsx files). */
+EXCEL_METHOD(Sheet, dataValidationSize)
+{
+	zval *object = getThis();
+	SheetHandle sheet;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	RETURN_LONG(xlSheetDataValidationSize(sheet));
+}
+/* }}} */
+
+/* {{{ proto array|false Sheet::dataValidation(int index)
+	Returns data validation details by index (only for xlsx files). */
+EXCEL_METHOD(Sheet, dataValidation)
+{
+	zval *object = getThis();
+	SheetHandle sheet;
+	zend_long index;
+	int type = 0, op = 0, rowFirst = 0, rowLast = 0, colFirst = 0, colLast = 0;
+	int allowBlank = 0, hideDropDown = 0, showInputMessage = 0, showErrorMessage = 0, errorStyle = 0;
+	const char *value1 = NULL, *value2 = NULL, *promptTitle = NULL, *prompt = NULL, *errorTitle = NULL, *error = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	SHEET_FROM_OBJECT(sheet, object);
+
+	if (!xlSheetDataValidationEx(sheet, (int)index, &type, &op, &rowFirst, &rowLast, &colFirst, &colLast,
+			&value1, &value2, &allowBlank, &hideDropDown, &showInputMessage, &showErrorMessage,
+			&promptTitle, &prompt, &errorTitle, &error, &errorStyle)) {
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	add_assoc_long(return_value, "type", type);
+	add_assoc_long(return_value, "op", op);
+	add_assoc_long(return_value, "row_first", rowFirst);
+	add_assoc_long(return_value, "row_last", rowLast);
+	add_assoc_long(return_value, "col_first", colFirst);
+	add_assoc_long(return_value, "col_last", colLast);
+	add_assoc_string(return_value, "value_1", value1 ? value1 : "");
+	add_assoc_string(return_value, "value_2", value2 ? value2 : "");
+	add_assoc_bool(return_value, "allow_blank", allowBlank);
+	add_assoc_bool(return_value, "hide_dropdown", hideDropDown);
+	add_assoc_bool(return_value, "show_inputmessage", showInputMessage);
+	add_assoc_bool(return_value, "show_errormessage", showErrorMessage);
+	add_assoc_string(return_value, "prompt_title", promptTitle ? promptTitle : "");
+	add_assoc_string(return_value, "prompt", prompt ? prompt : "");
+	add_assoc_string(return_value, "error_title", errorTitle ? errorTitle : "");
+	add_assoc_string(return_value, "error", error ? error : "");
+	add_assoc_long(return_value, "error_style", errorStyle);
+}
+/* }}} */
+#endif
 #endif
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_Book_requiresKey, 0, 0, 0)
@@ -7831,6 +7939,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_autoFilter, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_isAutoFilter, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removeFilter, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
@@ -7843,8 +7954,8 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_setRef, 0, 0, 0)
 	ZEND_ARG_INFO(0, row_first)
-	ZEND_ARG_INFO(0, col_first)
 	ZEND_ARG_INFO(0, row_last)
+	ZEND_ARG_INFO(0, col_first)
 	ZEND_ARG_INFO(0, col_last)
 ZEND_END_ARG_INFO()
 
@@ -7862,7 +7973,13 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_getSortRange, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
+#if LIBXL_VERSION >= 0x05020000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_sortLevels, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#endif
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_getSort, 0, 0, 0)
+	ZEND_ARG_INFO(0, level)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_AutoFilter_setSort, 0, 0, 2)
@@ -7968,6 +8085,15 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_removeDataValidations, 0, 0, 0)
 ZEND_END_ARG_INFO()
+
+#if LIBXL_VERSION >= 0x05020000
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_dataValidationSize, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_Sheet_dataValidation, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+#endif
 #endif
 
 #if LIBXL_VERSION >= 0x03080600
@@ -8449,6 +8575,7 @@ zend_function_entry excel_funcs_sheet[] = {
 	EXCEL_ME(Sheet, writeFormula, arginfo_Sheet_writeFormula, 0)
 	EXCEL_ME(Sheet, applyFilter, arginfo_Sheet_applyFilter, 0)
 	EXCEL_ME(Sheet, autoFilter, arginfo_Sheet_autoFilter, 0)
+	EXCEL_ME(Sheet, isAutoFilter, arginfo_Sheet_isAutoFilter, 0)
 	EXCEL_ME(Sheet, removeFilter, arginfo_Sheet_removeFilter, 0)
 	EXCEL_ME(Sheet, table, arginfo_Sheet_table, 0)
 	EXCEL_ME(Sheet, writeError, arginfo_Sheet_writeError, 0)
@@ -8458,6 +8585,10 @@ zend_function_entry excel_funcs_sheet[] = {
 	EXCEL_ME(Sheet, addDataValidation, arginfo_Sheet_addDataValidation, 0)
 	EXCEL_ME(Sheet, addDataValidationDouble, arginfo_Sheet_addDataValidationDouble, 0)
 	EXCEL_ME(Sheet, removeDataValidations, arginfo_Sheet_removeDataValidations, 0)
+#if LIBXL_VERSION >= 0x05020000
+	EXCEL_ME(Sheet, dataValidationSize, arginfo_Sheet_dataValidationSize, 0)
+	EXCEL_ME(Sheet, dataValidation, arginfo_Sheet_dataValidation, 0)
+#endif
 #endif
 #if LIBXL_VERSION >= 0x03080600
 	EXCEL_ME(Sheet, colWidthPx, arginfo_Sheet_colWidthPx, 0)
@@ -8575,6 +8706,9 @@ zend_function_entry excel_funcs_autofilter[] = {
 	EXCEL_ME(AutoFilter, columnSize, arginfo_AutoFilter_columnSize, 0)
 	EXCEL_ME(AutoFilter, columnByIndex, arginfo_AutoFilter_columnByIndex, 0)
 	EXCEL_ME(AutoFilter, getSortRange, arginfo_AutoFilter_getSortRange, 0)
+#if LIBXL_VERSION >= 0x05020000
+	EXCEL_ME(AutoFilter, sortLevels, arginfo_AutoFilter_sortLevels, 0)
+#endif
 	EXCEL_ME(AutoFilter, getSort, arginfo_AutoFilter_getSort, 0)
 	EXCEL_ME(AutoFilter, setSort, arginfo_AutoFilter_setSort, 0)
 #if LIBXL_VERSION >= 0x04000000

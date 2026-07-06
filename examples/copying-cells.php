@@ -1,6 +1,8 @@
 <?php
 $srcBook = new ExcelBook();
-$srcBook->load(__DIR__ . '/data.xls');
+if (!$srcBook->loadFile(__DIR__ . '/receipt.xls')) {
+    exit("Failed to load workbook: run write-excel-data.php first to create receipt.xls\n");
+}
 
 $srcSheet = $srcBook->getSheet(0);
 
@@ -8,7 +10,7 @@ $dstBook = new ExcelBook();
 $dstSheet = $dstBook->addSheet('my');
 
 for ($col = $srcSheet->firstCol(); $col < $srcSheet->lastCol(); $col++) {
-    $dstSheet->setColWidth($col, $col, $srcSheet->colWidth($col), false, $srcSheet->colHidden($col));
+    $dstSheet->setColWidth($col, $col, $srcSheet->colWidth($col), $srcSheet->colHidden($col));
 }
 
 for ($i = 0; $i < $srcSheet->mergeSize(); $i++) {
@@ -29,11 +31,13 @@ for ($row = $srcSheet->firstRow(); $row < $srcSheet->lastRow(); $row++) {
             continue;
         }
 
+        // keep $srcFormat referenced in the map: spl_object_id() values are
+        // reused once an object is destroyed
         if (!isset($formats[spl_object_id($srcFormat)])) {
             $dstFormat = $dstBook->addFormat($srcFormat);
-            $formats[spl_object_id($srcFormat)] = $dstFormat;
+            $formats[spl_object_id($srcFormat)] = [$srcFormat, $dstFormat];
         } else {
-            $dstFormat = $formats[spl_object_id($srcFormat)];
+            $dstFormat = $formats[spl_object_id($srcFormat)][1];
         }
 
         $ct = $srcSheet->cellType($row, $col);

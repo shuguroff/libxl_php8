@@ -27,12 +27,12 @@ $sheet->setColWidth(0, 0, 15);
 $sheet->setColWidth(1, 1, 12);
 
 $cfHighlight = $book->addConditionalFormat();
-$cfHighlight->fillPattern(ExcelFormat::FILLPATTERN_SOLID);
-$cfHighlight->patternForegroundColor(ExcelFormat::COLOR_LIGHTGREEN);
+$cfHighlight->setFillPattern(ExcelFormat::FILLPATTERN_SOLID);
+$cfHighlight->setPatternForegroundColor(ExcelFormat::COLOR_LIGHTGREEN);
 
 $cfing = $sheet->addConditionalFormatting(0, 8, 1, 1);
 $cfing->addOpNumRule(
-    ExcelConditionalFormatting::CFOPERATOR_GREATER_THAN,
+    ExcelConditionalFormatting::CFOPERATOR_GREATERTHAN,
     $cfHighlight,
     20,
     0

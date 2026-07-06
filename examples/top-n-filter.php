@@ -1,5 +1,5 @@
 <?php
-$book = new ExcelBook();
+$book = new ExcelBook(null, null, true);
 $sheet = $book->addSheet('Top N Filter');
 
 $format = $book->addFormat();

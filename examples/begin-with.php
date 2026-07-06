@@ -24,12 +24,12 @@ $sheet->setColWidth(0, 0, 15);
 $sheet->setColWidth(1, 1, 20);
 
 $cfHighlight = $book->addConditionalFormat();
-$cfHighlight->fillPattern(ExcelFormat::FILLPATTERN_SOLID);
-$cfHighlight->patternForegroundColor(ExcelFormat::COLOR_LIGHTYELLOW);
+$cfHighlight->setFillPattern(ExcelFormat::FILLPATTERN_SOLID);
+$cfHighlight->setPatternForegroundColor(ExcelFormat::COLOR_LIGHTYELLOW);
 
 $cfing = $sheet->addConditionalFormatting(0, 5, 0, 0);
 $cfing->addOpStrRule(
-    ExcelConditionalFormatting::CFOPERATOR_CONTAINSTEXT,
+    ExcelConditionalFormatting::CFOPERATOR_BEGINSWITH,
     $cfHighlight,
     'ABC',
     ''

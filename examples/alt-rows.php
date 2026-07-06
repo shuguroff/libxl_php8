@@ -1,5 +1,5 @@
 <?php
-$book = new ExcelBook();
+$book = new ExcelBook(null, null, true);
 $sheet = $book->addSheet('Alt Rows');
 
 $headerFormat = $book->addFormat();
@@ -31,7 +31,7 @@ for ($row = 1; $row <= 10; $row++) {
 }
 
 $sheet->setColWidth(0, 0, 8);
-$sheet->setColWidth(1, 0, 15);
-$sheet->setColWidth(2, 0, 12);
+$sheet->setColWidth(1, 1, 15);
+$sheet->setColWidth(2, 2, 12);
 
 $book->save(__DIR__ . '/alt-rows.xlsx');

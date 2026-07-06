@@ -19,7 +19,7 @@ Creates a complete sales receipt with:
 
 ### [read-excel-data.php](examples/read-excel-data.php)
 
-Demonstrates how to read data from Excel files:
+Demonstrates how to read data from Excel files (reads `receipt.xls`, run `write-excel-data.php` first):
 - Iterates through all rows and columns
 - Detects and handles different cell types (number, string, boolean, empty, blank, error)
 - Reads formulas and displays them
@@ -36,8 +36,8 @@ Shows how to insert images into worksheets:
 
 ### [get-picture.php](examples/get-picture.php)
 
-Demonstrates extracting images from Excel files:
-- Loading an existing workbook
+Demonstrates extracting images from Excel files (reads `receipt.xls`, run `write-excel-data.php` first):
+- Loading an existing workbook with `loadFile()`
 - Getting picture information (position, size)
 - Extracting picture data in original format
 - Saving pictures to files
@@ -57,13 +57,13 @@ Working with dates and times:
 - Creating date values using `packDateValues()`
 - Formatting dates with built-in and custom formats
 - Writing dates, times, and datetimes
-- Reading and unpacking dates back to timestamps
+- Reading dates back: `read()` returns unix timestamps for date-formatted cells
 
 **Output:** `datetime.xls`
 
 ### [sheet-by-name.php](examples/sheet-by-name.php)
 
-Accessing worksheets by different methods:
+Accessing worksheets by different methods (self-contained, creates its own sheets):
 - Getting sheet by index
 - Finding sheet by name using `getSheetByName()`
 - Getting total sheet count
@@ -185,7 +185,7 @@ Creates rich text strings with multiple fonts in a single cell:
 - Writing rich strings to cells
 - Combining bold, italic, and colored text
 
-**Output:** `rich-string.xls`
+**Output:** `rich-string.xlsx`
 
 ## AutoFilter Examples
 
@@ -239,7 +239,7 @@ Filtering by specific values:
 ### [begin-with.php](examples/begin-with.php)
 
 Highlights cells that begin with specific text:
-- Using `addOpStrRule()` with `CFOPERATOR_CONTAINSTEXT`
+- Using `addOpStrRule()` with `CFOPERATOR_BEGINSWITH`
 - Applying conditional formatting styles
 - Creating highlight formats
 
@@ -281,8 +281,9 @@ php examples/example-name.php
 ```
 
 Note: Some examples require:
-- An input file (e.g., `input.xls`) to exist in the examples directory
-- An image file (`logo.png` or `image.png`) for picture examples
+- `receipt.xls` in the examples directory (`read-excel-data.php`, `get-picture.php`, `copying-cells.php`) — run `write-excel-data.php` first to create it
+- `output.bin` for `buffer2.php` — run `buffer1.php` first
+- The bundled `logo.png` for picture examples
 - The `excel.so` extension to be loaded
 
 For Docker-based testing:
@@ -297,4 +298,4 @@ docker compose up php83
 - Examples output `.xls` files by default (BIFF8 format). Use `new ExcelBook(null, null, true)` for XLSX format.
 - Some advanced features (AutoFilter, Conditional Formatting) require XLSX format.
 - All examples include proper error handling where applicable.
-- Examples are compatible with PHP 8.2+ and libxl_php8 extension.
+- Examples are compatible with PHP 7.4+ and the libxl_php8 extension.

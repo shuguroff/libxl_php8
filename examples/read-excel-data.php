@@ -1,7 +1,7 @@
 <?php
 $book = new ExcelBook();
 
-if ($book->load(__DIR__ . '/input.xls')) {
+if ($book->loadFile(__DIR__ . '/receipt.xls')) {
     $sheet = $book->getSheet(0);
     if ($sheet) {
         for ($row = $sheet->firstRow(); $row < $sheet->lastRow(); $row++) {

@@ -1,5 +1,5 @@
 <?php
-$book = new ExcelBook();
+$book = new ExcelBook(null, null, true);
 $sheet = $book->addSheet('Number Filter');
 
 $format = $book->addFormat();

@@ -1,5 +1,5 @@
 <?php
-$book = new ExcelBook();
+$book = new ExcelBook(null, null, true);
 $sheet = $book->addSheet('Rich Text');
 
 $fontNormal = $book->addFont();
@@ -38,4 +38,4 @@ $richString2->addText('File not found', $fontNormal);
 
 $sheet->writeRichStr(2, 0, $richString2, $format);
 
-$book->save(__DIR__ . '/rich-string.xls');
+$book->save(__DIR__ . '/rich-string.xlsx');

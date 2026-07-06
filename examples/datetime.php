@@ -27,17 +27,17 @@ $sheet->write(2, 1, $dateTimeValue, $formatDateTime);
 $book->save(__DIR__ . '/datetime.xls');
 
 $book2 = new ExcelBook();
-$book2->load(__DIR__ . '/datetime.xls');
+if (!$book2->loadFile(__DIR__ . '/datetime.xls')) {
+    exit("Failed to load datetime.xls: " . $book2->getError() . "\n");
+}
 $sheet2 = $book2->getSheet(0);
 
+// read() detects date-formatted cells and returns unix timestamps directly,
+// no extra unpackDate() call is needed
 $dateRead = $sheet2->read(0, 1);
 $timeRead = $sheet2->read(1, 1);
 $dateTimeRead = $sheet2->read(2, 1);
 
-$dateUnpacked = $book2->unpackDate($dateRead);
-$timeUnpacked = $book2->unpackDate($timeRead);
-$dateTimeUnpacked = $book2->unpackDate($dateTimeRead);
-
-echo "Date unpacked: " . date('Y-m-d', $dateUnpacked) . "\n";
-echo "Time unpacked: " . date('H:i:s', $timeUnpacked) . "\n";
-echo "DateTime unpacked: " . date('Y-m-d H:i:s', $dateTimeUnpacked) . "\n";
+echo "Date read back: " . date('Y-m-d', $dateRead) . "\n";
+echo "Time read back: " . date('H:i:s', $timeRead) . "\n";
+echo "DateTime read back: " . date('Y-m-d H:i:s', $dateTimeRead) . "\n";

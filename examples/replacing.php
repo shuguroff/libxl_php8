@@ -15,7 +15,9 @@ $sheet->write(1, 1, 'Green Apple', $format);
 $book->save(__DIR__ . '/before-replace.xls');
 
 $book2 = new ExcelBook();
-$book2->load(__DIR__ . '/before-replace.xls');
+if (!$book2->loadFile(__DIR__ . '/before-replace.xls')) {
+    exit("Failed to load before-replace.xls: " . $book2->getError() . "\n");
+}
 
 for ($i = 0; $i < $book2->sheetCount(); $i++) {
     $sheet2 = $book2->getSheet($i);

@@ -34,3 +34,9 @@ tests/*.php
 
 # Локальная копия LibXL
 libxl-mac/
+
+# Артефакты запуска примеров (трекнутые receipt.xls/test.xls* не затрагиваются)
+examples/*.xls
+examples/*.xlsx
+examples/output*.bin
+examples/output_*

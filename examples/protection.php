@@ -15,7 +15,9 @@ $sheet->setProtect(true, 'password123', ExcelSheet::PROT_ALL);
 $book->save(__DIR__ . '/protected.xls');
 
 $book2 = new ExcelBook();
-$book2->load(__DIR__ . '/protected.xls');
+if (!$book2->loadFile(__DIR__ . '/protected.xls')) {
+    exit("Failed to load protected.xls: " . $book2->getError() . "\n");
+}
 $sheet2 = $book2->getSheet(0);
 
 echo "Sheet protected: " . ($sheet2->protect() ? 'Yes' : 'No') . "\n";

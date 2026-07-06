@@ -61,7 +61,7 @@ This project is based on the work of many contributors:
 ## Requirements
 
 - PHP 7.4+
-- [LibXL](http://www.libxl.com/) 3.6.0+ (commercial library, trial version available)
+- [LibXL](http://www.libxl.com/) 3.6.0+ (tested up to 5.x; commercial library, trial version available)
 
 ## Installation
 

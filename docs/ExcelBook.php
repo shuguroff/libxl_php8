@@ -29,6 +29,10 @@ class ExcelBook
 	const SHEETTYPE_SHEET = 0;
 	const SHEETTYPE_UNKNOWN = 2;
 
+	const CALCMODE_MANUAL = 0;
+	const CALCMODE_AUTO = 1;
+	const CALCMODE_AUTONOTABLE = 2;
+
 	/**
 	* Create a new Excel workbook
 	*
@@ -234,7 +238,7 @@ class ExcelBook
 	/**
 	* Get Excel error string
 	*
-	* @return string Description of last error that occurred, or false if no error
+	* @return string|false Description of last error that occurred, or false if no error
 	*/
 	public function getError()
 	{
@@ -632,5 +636,133 @@ class ExcelBook
 	public function removeAllPhonetics()
 	{
 	} // removeAllPhonetics
+
+	/**
+	* Get Excel error code of last operation
+	*
+	* @see ExcelBook::getError()
+	* @return int
+	*/
+	public function errorCode()
+	{
+	} // errorCode
+
+	/**
+	* Protects the workbook with a password
+	*
+	* @param string $password
+	* @return void
+	*/
+	public function setPassword($password)
+	{
+	} // setPassword
+
+	/**
+	* Returns whether the workbook is write-protected
+	*
+	* @return bool
+	*/
+	public function isWriteProtected()
+	{
+	} // isWriteProtected
+
+	/**
+	* Returns the format version of the loaded file (xls: BIFF version, xlsx: 0)
+	*
+	* @return int
+	*/
+	public function version()
+	{
+	} // version
+
+	/**
+	* Returns the calculation mode of the workbook (CALCMODE_* value)
+	*
+	* @return int
+	*/
+	public function calcMode()
+	{
+	} // calcMode
+
+	/**
+	* Sets the calculation mode of the workbook (CALCMODE_* value)
+	*
+	* @param int $mode
+	* @return void
+	*/
+	public function setCalcMode($mode)
+	{
+	} // setCalcMode
+
+	/**
+	* Load workbook properties only (without sheet data) from string
+	*
+	* @see ExcelBook::loadInfo()
+	* @param string $data
+	* @return bool
+	*/
+	public function loadInfoRaw($data)
+	{
+	} // loadInfoRaw
+
+	/**
+	* Load a workbook from file, skipping empty cells
+	*
+	* @param string $filename
+	* @return bool
+	*/
+	public function loadWithoutEmptyCells($filename)
+	{
+	} // loadWithoutEmptyCells
+
+	/**
+	* Clears the workbook: removes all sheets, fonts, formats and pictures
+	*
+	* @return void
+	*/
+	public function clear()
+	{
+	} // clear
+
+	/**
+	* Creates a new rich string.
+	* Requires LibXL >= 3.9.0.
+	*
+	* @return ExcelRichString
+	*/
+	public function addRichString()
+	{
+	} // addRichString
+
+	/**
+	* Creates a new conditional format.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @return ExcelConditionalFormat
+	*/
+	public function addConditionalFormat()
+	{
+	} // addConditionalFormat
+
+	/**
+	* Returns a conditional format by index.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @param int $index
+	* @return ExcelConditionalFormat|false
+	*/
+	public function conditionalFormat($index)
+	{
+	} // conditionalFormat
+
+	/**
+	* Returns the number of conditional formats in the workbook.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @return int
+	*/
+	public function conditionalFormatSize()
+	{
+	} // conditionalFormatSize
 
 } // end ExcelBook

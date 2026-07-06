@@ -59,7 +59,7 @@ static long xlFormatBorderColor(FormatHandle f)
 #define EXCEL_MAX_ROTATION      180  /* Maximum text rotation angle */
 #define EXCEL_ROTATION_VERTICAL 255  /* Special value: vertical text */
 
-#define PHP_EXCEL_VERSION "1.0.3dev"
+#define PHP_EXCEL_VERSION "1.4.0"
 
 #ifdef COMPILE_DL_EXCEL
 ZEND_GET_MODULE(excel)
@@ -217,7 +217,7 @@ static zend_object *excel_font_object_clone(zval *this_ptr)
 
 	font = xlBookAddFont(old_obj->book, old_obj->font);
 	if (!font) {
-		zend_throw_exception(NULL, "Failed to copy font", 0);
+		zend_throw_exception(excel_ce_exception, "Failed to copy font", 0);
 	} else {
 		new_obj->book = old_obj->book;
 		new_obj->font = font;
@@ -280,7 +280,7 @@ static zend_object *excel_format_object_clone(zval *this_ptr)
 
 	format = xlBookAddFormat(old_obj->book, old_obj->format);
 	if (!format) {
-		zend_throw_exception(NULL, "Failed to copy format", 0);
+		zend_throw_exception(excel_ce_exception, "Failed to copy format", 0);
 	} else {
 		new_obj->book = old_obj->book;
 		new_obj->format = format;
@@ -714,7 +714,7 @@ EXCEL_METHOD(Book, getError)
 			RETURN_STRING(err);
 		}
 	} else {
-		RETURN_STRING("Unknown Error");
+		RETURN_FALSE;
 	}
 }
 /* }}} */
@@ -1229,7 +1229,11 @@ static void php_excel_add_picture(INTERNAL_FUNCTION_PARAMETERS, int mode) /* {{{
 		contents = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
 		php_stream_close(stream);
 
-		if (!contents || ZSTR_LEN(contents) < 1) {
+		if (!contents) {
+			RETURN_FALSE;
+		}
+
+		if (ZSTR_LEN(contents) < 1) {
 			zend_string_release(contents);
 			RETURN_FALSE;
 		}
@@ -2446,6 +2450,7 @@ EXCEL_METHOD(Sheet, cellFormat)
 {
 	zval *object = getThis();
 	SheetHandle sheet;
+	BookHandle book;
 	FormatHandle format;
 	zend_long row, col;
 	excel_format_object *fo;
@@ -2454,13 +2459,17 @@ EXCEL_METHOD(Sheet, cellFormat)
 		RETURN_FALSE;
 	}
 
-	SHEET_FROM_OBJECT(sheet, object);
+	SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object);
 
 	format = xlSheetCellFormat(sheet, row, col);
+	if (!format) {
+		RETURN_FALSE;
+	}
 
 	ZVAL_OBJ(return_value, excel_object_new_format(excel_ce_format));
 	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
 	fo->format = format;
+	fo->book = book;
 }
 /* }}} */
 
@@ -2707,6 +2716,7 @@ EXCEL_METHOD(Sheet, read)
 		ZVAL_OBJ(oformat, excel_object_new_format(excel_ce_format));
 		fo = Z_EXCEL_FORMAT_OBJ_P(oformat);
 		fo->format = format;
+		fo->book = book;
 	}
 }
 /* }}} */
@@ -2734,7 +2744,12 @@ zend_bool php_excel_write_cell(SheetHandle sheet, BookHandle book, int row, int 
 					return 0;
 				}
 				if (!format) {
+					/* ponytail: allocates a new format per date cell written without an explicit format;
+					   tens of thousands of dates will hit the xlsx format-table limit — cache the handle per book then */
 					FormatHandle fmt = xlBookAddFormat(book, NULL);
+					if (!fmt) {
+						return 0;
+					}
 					xlFormatSetNumFormat(fmt, NUMFORMAT_DATE);
 					return xlSheetWriteNum(sheet, row, col, dt, fmt);
 				} else {
@@ -2841,7 +2856,7 @@ EXCEL_METHOD(Sheet, writeRow)
 	zval *element;
 	long i;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "la|lO", &row, &data, &col, &oformat, excel_ce_format) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "la|lO!", &row, &data, &col, &oformat, excel_ce_format) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -3422,14 +3437,13 @@ EXCEL_METHOD(Sheet, setColWidth)
 		zval *f = NULL;
 		zend_bool h = 0;
 
-		if (zend_parse_parameters(ZEND_NUM_ARGS(), "lld|bz", &s, &e, &width, &h, &f) == FAILURE) {
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "lld|bO!", &s, &e, &width, &h, &f, excel_ce_format) == FAILURE) {
 			RETURN_FALSE;
 		}
 
 		SHEET_FROM_OBJECT(sheet, object);
 
 		if (f) {
-			ZVAL_DEREF(f);
 			FORMAT_FROM_OBJECT(format, f);
 		}
 
@@ -3460,14 +3474,13 @@ EXCEL_METHOD(Sheet, setColPx)
 		zval *f = NULL;
 		zend_bool h = 0;
 
-		if (zend_parse_parameters(ZEND_NUM_ARGS(), "lll|bz", &s, &e, &widthPx, &h, &f) == FAILURE) {
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "lll|bO!", &s, &e, &widthPx, &h, &f, excel_ce_format) == FAILURE) {
 			RETURN_FALSE;
 		}
 
 		SHEET_FROM_OBJECT(sheet, object);
 
 		if (f) {
-			ZVAL_DEREF(f);
 			FORMAT_FROM_OBJECT(format, f);
 		}
 
@@ -3499,14 +3512,13 @@ EXCEL_METHOD(Sheet, setRowHeight)
 		zval *f = NULL;
 		zend_bool h = 0;
 
-		if (zend_parse_parameters(ZEND_NUM_ARGS(), "ld|zb", &row, &height, &f, &h) == FAILURE) {
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "ld|O!b", &row, &height, &f, excel_ce_format, &h) == FAILURE) {
 			RETURN_FALSE;
 		}
 
 		SHEET_FROM_OBJECT(sheet, object);
 
 		if (f) {
-			ZVAL_DEREF(f);
 			FORMAT_FROM_OBJECT(format, f);
 		}
 
@@ -3534,14 +3546,13 @@ EXCEL_METHOD(Sheet, setRowPx)
 		zval *f = NULL;
 		zend_bool h = 0;
 
-		if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll|zb", &row, &heightPx, &f, &h) == FAILURE) {
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "ll|O!b", &row, &heightPx, &f, excel_ce_format, &h) == FAILURE) {
 			RETURN_FALSE;
 		}
 
 		SHEET_FROM_OBJECT(sheet, object);
 
 		if (f) {
-			ZVAL_DEREF(f);
 			FORMAT_FROM_OBJECT(format, f);
 		}
 

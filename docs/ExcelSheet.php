@@ -720,17 +720,6 @@ class ExcelSheet
 	} // header
 
 	/**
-	* Hides/unhides the sheet
-	*
-	* @deprecated
-	* @param bool $hide
-	* @return bool
-	*/
-	public function hidden($hide)
-	{
-	} // hidden
-
-	/**
 	* Gets the hyperlink and its coordinates by index.
 	*
 	* @param int $index
@@ -1259,20 +1248,6 @@ class ExcelSheet
 	public function setColWidth($column_start, $column_end, $width, $hidden = false, $format = null)
 	{
 	} // setColWidth
-
-	/**
-	* Sets the borders for autofit column widths feature. The method Sheet::setCol()
-	* with -1 width value will affect only to the specified limited area.
-	*
-	* @param int $row_start 0-based row number
-	* @param int $row_end 0-based row number
-	* @param int $column_start 0-based column number
-	* @param int $column_end 0-based column number
-	* @return bool
-	*/
-	public function setAutofitArea($row_start = 0, $row_end = -1, $column_start = 0, $column_end = -1)
-	{
-	} // setAutofitArea
 
 	/**
 	* Sets gridlines for displaying
@@ -1944,5 +1919,249 @@ class ExcelSheet
 	public function setBorder($rowFirst, $rowLast, $colFirst, $colLast, $borderStyle, $borderColor)
 	{
 	} // setBorder
+
+	/**
+	* Returns the default row height in the sheet
+	*
+	* @return float
+	*/
+	public function defaultRowHeight()
+	{
+	} // defaultRowHeight
+
+	/**
+	* Sets the default row height in the sheet
+	*
+	* @param float $height
+	* @return void
+	*/
+	public function setDefaultRowHeight($height)
+	{
+	} // setDefaultRowHeight
+
+	/**
+	* Returns the color of the sheet's tab (COLOR_* value)
+	*
+	* @return int
+	*/
+	public function tabColor()
+	{
+	} // tabColor
+
+	/**
+	* Returns the RGB color of the sheet's tab.
+	* Result: ['red' => int, 'green' => int, 'blue' => int]
+	*
+	* @return array
+	*/
+	public function getTabRgbColor()
+	{
+	} // getTabRgbColor
+
+	/**
+	* Returns the active cell coordinates.
+	* Result: ['row' => int, 'column' => int]
+	*
+	* @return array|false
+	*/
+	public function getActiveCell()
+	{
+	} // getActiveCell
+
+	/**
+	* Sets the active cell
+	*
+	* @param int $row
+	* @param int $col
+	* @return void
+	*/
+	public function setActiveCell($row, $col)
+	{
+	} // setActiveCell
+
+	/**
+	* Returns the selected range as string (e.g. "A1:B4")
+	*
+	* @return string
+	*/
+	public function selectionRange()
+	{
+	} // selectionRange
+
+	/**
+	* Adds a range to the current selection
+	*
+	* @param string $sqref range reference, e.g. "A1:B4"
+	* @return void
+	*/
+	public function addSelectionRange($sqref)
+	{
+	} // addSelectionRange
+
+	/**
+	* Removes the selection from the sheet
+	*
+	* @return void
+	*/
+	public function removeSelection()
+	{
+	} // removeSelection
+
+	/**
+	* Removes the picture at the given cell
+	*
+	* @param int $row
+	* @param int $col
+	* @return bool
+	*/
+	public function removePicture($row, $col)
+	{
+	} // removePicture
+
+	/**
+	* Removes the picture by its index in the sheet
+	*
+	* @param int $index
+	* @return bool
+	*/
+	public function removePictureByIndex($index)
+	{
+	} // removePictureByIndex
+
+	/**
+	* Writes a numeric string value into a cell as a number
+	*
+	* @param int $row
+	* @param int $col
+	* @param string $value
+	* @param ExcelFormat $format (optional)
+	* @return bool
+	*/
+	public function writeStrAsNum($row, $col, $value, $format = null)
+	{
+	} // writeStrAsNum
+
+	/**
+	* Checks whether the cell contains a rich string.
+	* Requires LibXL >= 3.9.0.
+	*
+	* @param int $row
+	* @param int $col
+	* @return bool
+	*/
+	public function isRichStr($row, $col)
+	{
+	} // isRichStr
+
+	/**
+	* Reads a rich string from a cell.
+	* Requires LibXL >= 3.9.0.
+	*
+	* @param int $row
+	* @param int $col
+	* @return ExcelRichString|false
+	*/
+	public function readRichStr($row, $col)
+	{
+	} // readRichStr
+
+	/**
+	* Writes a rich string into a cell.
+	* Requires LibXL >= 3.9.0.
+	*
+	* @param int $row
+	* @param int $col
+	* @param ExcelRichString $richString
+	* @param ExcelFormat $format (optional)
+	* @return bool
+	*/
+	public function writeRichStr($row, $col, $richString, $format = null)
+	{
+	} // writeRichStr
+
+	/**
+	* Adds a conditional formatting block for the given range.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @param int $rowFirst
+	* @param int $rowLast
+	* @param int $colFirst
+	* @param int $colLast
+	* @return ExcelConditionalFormatting
+	*/
+	public function addConditionalFormatting($rowFirst, $rowLast, $colFirst, $colLast)
+	{
+	} // addConditionalFormatting
+
+	/**
+	* Returns a conditional formatting block by index.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @param int $index
+	* @return ExcelConditionalFormatting|false
+	*/
+	public function conditionalFormatting($index)
+	{
+	} // conditionalFormatting
+
+	/**
+	* Returns the number of conditional formatting blocks in the sheet.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @return int
+	*/
+	public function conditionalFormattingSize()
+	{
+	} // conditionalFormattingSize
+
+	/**
+	* Removes a conditional formatting block by index.
+	* Requires LibXL >= 4.1.0.
+	*
+	* @param int $index
+	* @return bool
+	*/
+	public function removeConditionalFormatting($index)
+	{
+	} // removeConditionalFormatting
+
+	/**
+	* Adds a table (ListObject) to the sheet.
+	* Requires LibXL >= 4.6.0.
+	*
+	* @param string $name
+	* @param int $rowFirst
+	* @param int $rowLast
+	* @param int $colFirst
+	* @param int $colLast
+	* @param bool $hasHeaders
+	* @param int $tableStyle ExcelTable::TABLESTYLE_* value
+	* @return ExcelTable|false
+	*/
+	public function addTable($name, $rowFirst, $rowLast, $colFirst, $colLast, $hasHeaders = false, $tableStyle = ExcelTable::TABLESTYLE_MEDIUM2)
+	{
+	} // addTable
+
+	/**
+	* Returns a table by index.
+	* Requires LibXL >= 4.6.0.
+	*
+	* @param int $index
+	* @return ExcelTable|false
+	*/
+	public function getTableByIndex($index)
+	{
+	} // getTableByIndex
+
+	/**
+	* Returns a table by name.
+	* Requires LibXL >= 4.6.0.
+	*
+	* @param string $name
+	* @return ExcelTable|false
+	*/
+	public function getTableByName($name)
+	{
+	} // getTableByName
 
 } // end ExcelSheet

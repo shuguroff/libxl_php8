@@ -3,6 +3,7 @@
 # Usage:
 #   docker compose build              # build all images (without license)
 #   docker compose up php74           # test on PHP 7.4
+#   docker compose up php82           # test on PHP 8.2
 #   docker compose up php83           # test on PHP 8.3
 #   docker compose up php84           # test on PHP 8.4
 #   docker compose up php85           # test on PHP 8.5

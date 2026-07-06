@@ -81,7 +81,7 @@ if test "$PHP_EXCEL" != "no"; then
     PHP_ADD_LIBRARY_WITH_PATH(xl, $EXCEL_LIBDIR, EXCEL_SHARED_LIBADD)
     AC_DEFINE(HAVE_EXCELLIB, 1, [ ])
   ], [
-    AC_MSG_ERROR([excel module requires libxl >= 2.4.3])
+    AC_MSG_ERROR([excel module requires libxl >= 3.6.0])
   ], [
     -L$EXCEL_LIBDIR
   ])

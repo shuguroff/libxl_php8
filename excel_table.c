@@ -22,6 +22,7 @@ zend_object_handlers excel_object_handlers_table;
 
 static void excel_table_object_free_storage(zend_object *object)
 {
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(object);
 }
 
@@ -169,6 +170,7 @@ EXCEL_METHOD(Table, autoFilter)
 	excel_autofilter_object *afo = Z_EXCEL_AUTOFILTER_OBJ_P(return_value);
 	afo->autofilter = af;
 	afo->sheet = sheet;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -539,6 +541,7 @@ void excel_table_register(void)
 	memcpy(&excel_object_handlers_table, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	excel_object_handlers_table.offset = XtOffsetOf(excel_table_object, std);
 	excel_object_handlers_table.free_obj = excel_table_object_free_storage;
+	excel_object_handlers_table.get_gc = php_excel_owned_object_get_gc;
 	excel_object_handlers_table.clone_obj = NULL;
 
 	/* TableStyle constants */

@@ -22,6 +22,7 @@ zend_object_handlers excel_object_handlers_condformat;
 
 static void excel_condformat_object_free_storage(zend_object *object)
 {
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(object);
 }
 
@@ -85,6 +86,7 @@ EXCEL_METHOD(ConditionalFormat, font)
 	excel_font_object *fo = Z_EXCEL_FONT_OBJ_P(return_value);
 	fo->font = font;
 	fo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -686,6 +688,7 @@ zend_object_handlers excel_object_handlers_condformatting;
 
 static void excel_condformatting_object_free_storage(zend_object *object)
 {
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(object);
 }
 
@@ -1139,6 +1142,7 @@ void excel_condformat_register(void)
 	memcpy(&excel_object_handlers_condformat, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	excel_object_handlers_condformat.offset = XtOffsetOf(excel_condformat_object, std);
 	excel_object_handlers_condformat.free_obj = excel_condformat_object_free_storage;
+	excel_object_handlers_condformat.get_gc = php_excel_owned_object_get_gc;
 	excel_object_handlers_condformat.clone_obj = NULL;
 
 	/* ExcelConditionalFormatting */
@@ -1148,6 +1152,7 @@ void excel_condformat_register(void)
 	memcpy(&excel_object_handlers_condformatting, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	excel_object_handlers_condformatting.offset = XtOffsetOf(excel_condformatting_object, std);
 	excel_object_handlers_condformatting.free_obj = excel_condformatting_object_free_storage;
+	excel_object_handlers_condformatting.get_gc = php_excel_owned_object_get_gc;
 	excel_object_handlers_condformatting.clone_obj = NULL;
 
 	/* CFormatType constants */

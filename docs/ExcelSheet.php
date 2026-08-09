@@ -2164,4 +2164,26 @@ class ExcelSheet
 	{
 	} // getTableByName
 
+	/**
+	* Applies an existing auto filter to this sheet.
+	* Requires LibXL >= 4.6.0.
+	*
+	* @param ExcelAutoFilter $autoFilter
+	* @return void
+	*/
+	public function applyFilter2(ExcelAutoFilter $autoFilter)
+	{
+	} // applyFilter2
+
+	/**
+	* Removes a comment from a cell.
+	*
+	* @param int $row
+	* @param int $col
+	* @return bool
+	*/
+	public function removeComment($row, $col)
+	{
+	} // removeComment
+
 } // end ExcelSheet

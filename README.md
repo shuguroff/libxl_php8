@@ -82,7 +82,7 @@ pie install shuguroff/libxl-php \
 Download the `.tgz` package from [GitHub Releases](https://github.com/shuguroff/libxl_php8/releases) and install:
 
 ```bash
-pecl install https://github.com/shuguroff/libxl_php8/releases/download/v1.4.0/excel-1.4.0.tgz
+pecl install https://github.com/shuguroff/libxl_php8/releases/download/1.4.0/excel-1.4.0.tgz
 ```
 
 If you need to pass configure options:
@@ -121,12 +121,14 @@ docker compose build
 docker compose up
 ```
 
-To build with a LibXL license:
+To run tests with a LibXL license:
 
 ```bash
-LIBXL_LICENSE_NAME="Your Name" LIBXL_LICENSE_KEY="your-key" docker compose build
-docker compose up
+docker compose build
+LIBXL_LICENSE_NAME="Your Name" LIBXL_LICENSE_KEY="your-key" docker compose up
 ```
+
+The GitHub Actions PHPT matrix expects the same values in repository secrets `LIBXL_LICENSE_NAME` and `LIBXL_LICENSE_KEY`.
 
 #### 2b. Manual Build on Linux
 
@@ -346,6 +348,7 @@ LibXL is a commercial library - see [libxl.com](http://www.libxl.com/) for licen
 
 ## Known Issues
 
+- **Object invalidation:** `ExcelBook::load*()`, `clear()`, and a successful `deleteSheet()` invalidate all previously returned child objects; using one throws `ExcelException`. Fetch fresh objects from the book after these calls.
 - **Formulas:** LibXL stores only formulas, not calculated values. Open and save in Excel to calculate.
 - **Trial version:** Some features may be limited without a LibXL license.
 - **`make clean` deletes LibXL `.so` files:** The auto-generated Makefile runs `find . -name \*.so | xargs rm -f`, which recursively deletes all `.so` files — including `libxl/lib64/libxl.so` and others. If you store LibXL in the `libxl/` directory for Docker builds, avoid running `make clean` locally, or you will need to re-download the library.

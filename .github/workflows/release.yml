@@ -1,17 +1,96 @@
-name: Release
+name: CI and Release
 
 on:
   push:
-    tags:
-      - '*'
+    branches: ['main']
+    tags: ['*']
+  pull_request:
 
-permissions:
-  contents: write
+env:
+  LIBXL_VERSION: 5.2.0.1
+  LIBXL_SHA256: 447431d3046869428bf7182356bab1cfc04ef04e14eaf7118cc4193faadc53ae
 
 jobs:
-  release:
+  validate:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer, pear
+
+      - name: Validate metadata and PHP files
+        shell: bash
+        run: |
+          composer validate --strict --no-check-publish
+          pear package-validate package.xml
+          for file in docs/*.php examples/*.php; do php -l "$file"; done
+
+      - name: Check PECL manifest completeness
+        shell: bash
+        run: |
+          missing=0
+          for file in docs/*.php tests/*.phpt; do
+            name=$(basename "$file")
+            if ! grep -Fq "name=\"$name\"" package.xml; then
+              echo "::error file=package.xml::Missing $file"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+  test:
+    # Fork pull requests cannot read the LibXL secrets, and the suite needs a license.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.2', '8.3', '8.4', '8.5']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download pinned LibXL
+        shell: bash
+        run: |
+          archive="libxl-lin-${LIBXL_VERSION}.tar.gz"
+          curl --fail --location --retry 3 --output "$archive" \
+            "https://www.libxl.com/download/$archive"
+          echo "${LIBXL_SHA256}  $archive" | sha256sum --check --strict
+          tar -xzf "$archive"
+          mv "libxl-${LIBXL_VERSION}" libxl
+
+      - name: Build PHP ${{ matrix.php }} image
+        run: docker build --build-arg PHP_VERSION=${{ matrix.php }} --tag libxl-php:${{ matrix.php }} .
+
+      - name: Verify build context exclusions
+        run: |
+          docker run --rm --entrypoint sh libxl-php:${{ matrix.php }} -c \
+            'test ! -e /usr/src/libxl_php8/.env && test ! -e /usr/src/libxl_php8/.git'
+
+      - name: Run PHPT suite
+        env:
+          LIBXL_LICENSE_NAME: ${{ secrets.LIBXL_LICENSE_NAME }}
+          LIBXL_LICENSE_KEY: ${{ secrets.LIBXL_LICENSE_KEY }}
+        run: |
+          test -n "$LIBXL_LICENSE_NAME"
+          test -n "$LIBXL_LICENSE_KEY"
+          docker run --rm \
+            -e LIBXL_LICENSE_NAME \
+            -e LIBXL_LICENSE_KEY \
+            libxl-php:${{ matrix.php }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [validate, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,21 +101,59 @@ jobs:
           php-version: '8.3'
           tools: pear
 
-      - name: Build PECL package
-        run: pear package package.xml
-
-      - name: Get package filename
-        id: pkg
+      - name: Verify release version
+        shell: bash
         run: |
-          PKG=$(ls excel-*.tgz)
-          echo "file=$PKG" >> "$GITHUB_OUTPUT"
-          echo "Package: $PKG"
+          version=$(php -r '$p=simplexml_load_file("package.xml"); echo $p->version->release;')
+          test "$GITHUB_REF_NAME" = "$version"
+          grep -Fq "#define PHP_EXCEL_VERSION \"$version\"" excel.c
+
+      - name: Download pinned LibXL
+        shell: bash
+        run: |
+          archive="libxl-lin-${LIBXL_VERSION}.tar.gz"
+          curl --fail --location --retry 3 --output "$archive" \
+            "https://www.libxl.com/download/$archive"
+          echo "${LIBXL_SHA256}  $archive" | sha256sum --check --strict
+          tar -xzf "$archive"
+          mv "libxl-${LIBXL_VERSION}" libxl
+
+      - name: Build PECL package
+        id: package
+        shell: bash
+        run: |
+          pear package package.xml
+          file=$(find . -maxdepth 1 -name 'excel-*.tgz' -print -quit)
+          echo "file=${file#./}" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke-test packaged source
+        shell: bash
+        env:
+          LIBXL_LICENSE_NAME: ${{ secrets.LIBXL_LICENSE_NAME }}
+          LIBXL_LICENSE_KEY: ${{ secrets.LIBXL_LICENSE_KEY }}
+        run: |
+          test -n "$LIBXL_LICENSE_NAME"
+          test -n "$LIBXL_LICENSE_KEY"
+          ini_dir=$(php --ini | sed -n 's|^Scan for additional .ini files in: ||p')
+          printf 'excel.license_name="%s"\nexcel.license_key="%s"\n' \
+            "$LIBXL_LICENSE_NAME" "$LIBXL_LICENSE_KEY" \
+            | sudo tee "$ini_dir/99-excel-license.ini" >/dev/null
+          package_dir="$RUNNER_TEMP/package-smoke"
+          mkdir "$package_dir"
+          tar -xzf "${{ steps.package.outputs.file }}" -C "$package_dir"
+          cd "$package_dir/excel-$GITHUB_REF_NAME"
+          phpize
+          ./configure \
+            --with-excel \
+            --with-libxl-incdir="$GITHUB_WORKSPACE/libxl/include_c" \
+            --with-libxl-libdir="$GITHUB_WORKSPACE/libxl/lib64"
+          make -j2
+          LD_LIBRARY_PATH="$GITHUB_WORKSPACE/libxl/lib64" NO_INTERACTION=1 make test
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            "${{ steps.pkg.outputs.file }}" \
-            --title "${{ github.ref_name }}" \
+          gh release create "$GITHUB_REF_NAME" "${{ steps.package.outputs.file }}" \
+            --title "$GITHUB_REF_NAME" \
             --generate-notes

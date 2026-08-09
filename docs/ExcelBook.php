@@ -84,7 +84,7 @@ class ExcelBook
 	* @param ExcelFormat $format (optional, default=null) Format to copy
 	* @return ExcelFormat
 	*/
-	public function addFormat(ExcelFormat $format = null)
+	public function addFormat(?ExcelFormat $format = null)
 	{
 	} // addFormat
 

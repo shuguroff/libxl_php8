@@ -7,10 +7,6 @@ ARG PHP_VERSION=8.3
 
 FROM --platform=linux/amd64 php:${PHP_VERSION}-cli
 
-# LibXL license (optional)
-ARG LIBXL_LICENSE_NAME=""
-ARG LIBXL_LICENSE_KEY=""
-
 # Install dependencies for building PHP extensions
 RUN apt-get update && apt-get install -y \
     libxml2-dev \
@@ -51,16 +47,8 @@ RUN phpize \
     && make install \
     && echo "extension=excel.so" > /usr/local/etc/php/conf.d/excel.ini
 
-# Add license to php.ini (if provided)
-RUN if [ -n "$LIBXL_LICENSE_NAME" ]; then \
-        echo "excel.license_name=$LIBXL_LICENSE_NAME" >> /usr/local/etc/php/conf.d/excel.ini; \
-    fi && \
-    if [ -n "$LIBXL_LICENSE_KEY" ]; then \
-        echo "excel.license_key=$LIBXL_LICENSE_KEY" >> /usr/local/etc/php/conf.d/excel.ini; \
-    fi
-
 # Verify extension is loaded
 RUN php -m | grep -i excel
 
-# Run tests by default
-CMD ["make", "test", "NO_INTERACTION=1"]
+# Keep optional credentials out of image layers; the container is disposable.
+CMD ["sh", "-c", "printf 'excel.license_name=\"%s\"\nexcel.license_key=\"%s\"\n' \"$LIBXL_LICENSE_NAME\" \"$LIBXL_LICENSE_KEY\" > /usr/local/etc/php/conf.d/zz-excel-license.ini && exec make test NO_INTERACTION=1"]

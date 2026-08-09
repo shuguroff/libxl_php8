@@ -19,6 +19,7 @@ zend_object_handlers excel_object_handlers_richstring;
 static void excel_richstring_object_free_storage(zend_object *object)
 {
 	excel_richstring_object *intern = php_excel_richstring_object_fetch_object(object);
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(&intern->std);
 }
 
@@ -80,6 +81,7 @@ EXCEL_METHOD(RichString, addFont)
 	fo = Z_EXCEL_FONT_OBJ_P(return_value);
 	fo->font = new_font;
 	fo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -142,6 +144,7 @@ EXCEL_METHOD(RichString, getText)
 		fo = Z_EXCEL_FONT_OBJ_P(&zv_font);
 		fo->font = font;
 		fo->book = book;
+		php_excel_owned_object_copy_book(Z_OBJ(zv_font), Z_OBJ_P(object));
 		add_assoc_zval(return_value, "font", &zv_font);
 	} else {
 		add_assoc_null(return_value, "font");
@@ -222,6 +225,7 @@ void excel_richstring_register(void)
 	memcpy(&excel_object_handlers_richstring, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	excel_object_handlers_richstring.offset = XtOffsetOf(excel_richstring_object, std);
 	excel_object_handlers_richstring.free_obj = excel_richstring_object_free_storage;
+	excel_object_handlers_richstring.get_gc = php_excel_owned_object_get_gc;
 	excel_object_handlers_richstring.clone_obj = NULL;
 }
 

@@ -78,22 +78,30 @@ typedef bool zend_bool;
 
 typedef struct _excel_book_object {
 	BookHandle book;
+	zend_ulong generation;
 	zend_object std;
 } excel_book_object;
 
+#define EXCEL_OWNED_OBJECT_FIELDS \
+	zval book_ref; \
+	zend_ulong generation;
+
 typedef struct _excel_sheet_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	SheetHandle	sheet;
 	BookHandle book;
 	zend_object std;
 } excel_sheet_object;
 
 typedef struct _excel_font_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	FontHandle font;
 	BookHandle book;
 	zend_object std;
 } excel_font_object;
 
 typedef struct _excel_format_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	FormatHandle format;
 	BookHandle book;
 	zend_object std;
@@ -101,12 +109,14 @@ typedef struct _excel_format_object {
 
 #if LIBXL_VERSION >= 0x03070000
 typedef struct _excel_autofilter_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	AutoFilterHandle autofilter;
 	SheetHandle sheet;
 	zend_object std;
 } excel_autofilter_object;
 
 typedef struct _excel_filtercolumn_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	FilterColumnHandle filtercolumn;
 	AutoFilterHandle autofilter;
 	zend_object std;
@@ -115,6 +125,7 @@ typedef struct _excel_filtercolumn_object {
 
 #if LIBXL_VERSION >= 0x03090000
 typedef struct _excel_richstring_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	RichStringHandle richstring;
 	BookHandle book;
 	zend_object std;
@@ -123,6 +134,7 @@ typedef struct _excel_richstring_object {
 
 #if LIBXL_VERSION >= 0x04000000
 typedef struct _excel_formcontrol_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	FormControlHandle formcontrol;
 	SheetHandle sheet;
 	BookHandle book;
@@ -132,12 +144,14 @@ typedef struct _excel_formcontrol_object {
 
 #if LIBXL_VERSION >= 0x04010000
 typedef struct _excel_condformat_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	ConditionalFormatHandle condformat;
 	BookHandle book;
 	zend_object std;
 } excel_condformat_object;
 
 typedef struct _excel_condformatting_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	ConditionalFormattingHandle condformatting;
 	SheetHandle sheet;
 	BookHandle book;
@@ -147,6 +161,7 @@ typedef struct _excel_condformatting_object {
 
 #if LIBXL_VERSION >= 0x04050000
 typedef struct _excel_coreproperties_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	CorePropertiesHandle coreproperties;
 	BookHandle book;
 	zend_object std;
@@ -155,6 +170,7 @@ typedef struct _excel_coreproperties_object {
 
 #if LIBXL_VERSION >= 0x04060000
 typedef struct _excel_table_object {
+	EXCEL_OWNED_OBJECT_FIELDS
 	TableHandle table;
 	SheetHandle sheet;
 	BookHandle book;
@@ -165,6 +181,14 @@ typedef struct _excel_table_object {
 /* ----------------------------------------------------------------
    Inline fetch functions
    ---------------------------------------------------------------- */
+
+typedef struct _excel_owned_object {
+	EXCEL_OWNED_OBJECT_FIELDS
+} excel_owned_object;
+
+static inline excel_owned_object *php_excel_owned_object_fetch_object(zend_object *obj) {
+	return (excel_owned_object *)((char *)(obj) - obj->handlers->offset);
+}
 
 static inline excel_book_object *php_excel_book_object_fetch_object(zend_object *obj) {
 	return (excel_book_object *)((char *)(obj) - XtOffsetOf(excel_book_object, std));
@@ -267,6 +291,24 @@ static inline excel_table_object *php_excel_table_object_fetch_object(zend_objec
 
 extern zend_class_entry *excel_ce_exception;
 
+#if PHP_VERSION_ID < 80000
+PHP_EXCEL_API HashTable *php_excel_owned_object_get_gc(zval *object, zval **table, int *n);
+#else
+PHP_EXCEL_API HashTable *php_excel_owned_object_get_gc(zend_object *object, zval **table, int *n);
+#endif
+PHP_EXCEL_API void php_excel_owned_object_dtor(zend_object *object);
+PHP_EXCEL_API void php_excel_owned_object_set_book(zend_object *object, zval *book);
+PHP_EXCEL_API void php_excel_owned_object_copy_book(zend_object *object, zend_object *source);
+PHP_EXCEL_API zend_bool php_excel_owned_object_is_valid(zend_object *object);
+PHP_EXCEL_API void php_excel_book_invalidate_children(zval *book);
+
+#define EXCEL_VALIDATE_OWNER(obj, name) \
+	if (Z_ISUNDEF((obj)->book_ref) || \
+		(obj)->generation != php_excel_book_object_fetch_object(Z_OBJ((obj)->book_ref))->generation) { \
+		zend_throw_exception(excel_ce_exception, "The " name " is no longer valid", 0); \
+		RETURN_THROWS(); \
+	}
+
 #define BOOK_FROM_OBJECT(book, object) \
 	{ \
 		excel_book_object *obj = Z_EXCEL_BOOK_OBJ_P(object); \
@@ -280,6 +322,7 @@ extern zend_class_entry *excel_ce_exception;
 #define SHEET_FROM_OBJECT(sheet, object) \
 	{ \
 		excel_sheet_object *obj = Z_EXCEL_SHEET_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "sheet"); \
 		sheet = obj->sheet; \
 		if (!sheet) { \
 			zend_throw_exception(excel_ce_exception, "The sheet wasn't initialized", 0); \
@@ -290,6 +333,7 @@ extern zend_class_entry *excel_ce_exception;
 #define SHEET_AND_BOOK_FROM_OBJECT(sheet, book, object) \
 	{ \
 		excel_sheet_object *obj = Z_EXCEL_SHEET_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "sheet"); \
 		sheet = obj->sheet; \
 		book = obj->book; \
 		if (!sheet) { \
@@ -301,6 +345,7 @@ extern zend_class_entry *excel_ce_exception;
 #define FONT_FROM_OBJECT(font, object) \
 	{ \
 		excel_font_object *obj = Z_EXCEL_FONT_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "font"); \
 		font = obj->font; \
 		if (!font) { \
 			zend_throw_exception(excel_ce_exception, "The font wasn't initialized", 0); \
@@ -311,6 +356,7 @@ extern zend_class_entry *excel_ce_exception;
 #define FORMAT_FROM_OBJECT(format, object) \
 	{ \
 		excel_format_object *obj = Z_EXCEL_FORMAT_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "format"); \
 		format = obj->format; \
 		if (!format) { \
 			zend_throw_exception(excel_ce_exception, "The format wasn't initialized", 0); \
@@ -322,6 +368,7 @@ extern zend_class_entry *excel_ce_exception;
 #define AUTOFILTER_FROM_OBJECT(autofilter, object) \
 	{ \
 		excel_autofilter_object *obj = Z_EXCEL_AUTOFILTER_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "autofilter"); \
 		autofilter = obj->autofilter; \
 		if (!autofilter) { \
 			zend_throw_exception(excel_ce_exception, "The autofilter wasn't initialized", 0); \
@@ -332,6 +379,7 @@ extern zend_class_entry *excel_ce_exception;
 #define FILTERCOLUMN_FROM_OBJECT(filtercolumn, object) \
 	{ \
 		excel_filtercolumn_object *obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "filter column"); \
 		filtercolumn = obj->filtercolumn; \
 		if (!filtercolumn) { \
 			zend_throw_exception(excel_ce_exception, "The filtercolumn wasn't initialized", 0); \
@@ -344,6 +392,7 @@ extern zend_class_entry *excel_ce_exception;
 #define RICHSTRING_FROM_OBJECT(richstring, object) \
 	{ \
 		excel_richstring_object *obj = Z_EXCEL_RICHSTRING_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "rich string"); \
 		richstring = obj->richstring; \
 		if (!richstring) { \
 			zend_throw_exception(excel_ce_exception, "The richstring wasn't initialized", 0); \
@@ -354,6 +403,7 @@ extern zend_class_entry *excel_ce_exception;
 #define RICHSTRING_AND_BOOK_FROM_OBJECT(richstring, book, object) \
 	{ \
 		excel_richstring_object *obj = Z_EXCEL_RICHSTRING_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "rich string"); \
 		richstring = obj->richstring; \
 		book = obj->book; \
 		if (!richstring) { \
@@ -367,6 +417,7 @@ extern zend_class_entry *excel_ce_exception;
 #define FORMCONTROL_FROM_OBJECT(formcontrol, object) \
 	{ \
 		excel_formcontrol_object *obj = Z_EXCEL_FORMCONTROL_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "form control"); \
 		formcontrol = obj->formcontrol; \
 		if (!formcontrol) { \
 			zend_throw_exception(excel_ce_exception, "The formcontrol wasn't initialized", 0); \
@@ -377,6 +428,7 @@ extern zend_class_entry *excel_ce_exception;
 #define FORMCONTROL_AND_BOOK_FROM_OBJECT(formcontrol, book, object) \
 	{ \
 		excel_formcontrol_object *obj = Z_EXCEL_FORMCONTROL_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "form control"); \
 		formcontrol = obj->formcontrol; \
 		book = obj->book; \
 		if (!formcontrol) { \
@@ -390,6 +442,7 @@ extern zend_class_entry *excel_ce_exception;
 #define CONDFORMAT_FROM_OBJECT(condformat, object) \
 	{ \
 		excel_condformat_object *obj = Z_EXCEL_CONDFORMAT_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "conditional format"); \
 		condformat = obj->condformat; \
 		if (!condformat) { \
 			zend_throw_exception(excel_ce_exception, "The conditional format wasn't initialized", 0); \
@@ -400,6 +453,7 @@ extern zend_class_entry *excel_ce_exception;
 #define CONDFORMAT_AND_BOOK_FROM_OBJECT(condformat, book, object) \
 	{ \
 		excel_condformat_object *obj = Z_EXCEL_CONDFORMAT_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "conditional format"); \
 		condformat = obj->condformat; \
 		book = obj->book; \
 		if (!condformat) { \
@@ -411,6 +465,7 @@ extern zend_class_entry *excel_ce_exception;
 #define CONDFORMATTING_FROM_OBJECT(condformatting, object) \
 	{ \
 		excel_condformatting_object *obj = Z_EXCEL_CONDFORMATTING_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "conditional formatting"); \
 		condformatting = obj->condformatting; \
 		if (!condformatting) { \
 			zend_throw_exception(excel_ce_exception, "The conditional formatting wasn't initialized", 0); \
@@ -421,6 +476,7 @@ extern zend_class_entry *excel_ce_exception;
 #define CONDFORMATTING_AND_BOOK_FROM_OBJECT(condformatting, book, object) \
 	{ \
 		excel_condformatting_object *obj = Z_EXCEL_CONDFORMATTING_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "conditional formatting"); \
 		condformatting = obj->condformatting; \
 		book = obj->book; \
 		if (!condformatting) { \
@@ -434,6 +490,7 @@ extern zend_class_entry *excel_ce_exception;
 #define COREPROPERTIES_FROM_OBJECT(coreproperties, object) \
 	{ \
 		excel_coreproperties_object *obj = Z_EXCEL_COREPROPERTIES_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "core properties"); \
 		coreproperties = obj->coreproperties; \
 		if (!coreproperties) { \
 			zend_throw_exception(excel_ce_exception, "The core properties object wasn't initialized", 0); \
@@ -444,6 +501,7 @@ extern zend_class_entry *excel_ce_exception;
 #define COREPROPERTIES_AND_BOOK_FROM_OBJECT(coreproperties, book, object) \
 	{ \
 		excel_coreproperties_object *obj = Z_EXCEL_COREPROPERTIES_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "core properties"); \
 		coreproperties = obj->coreproperties; \
 		book = obj->book; \
 		if (!coreproperties) { \
@@ -457,6 +515,7 @@ extern zend_class_entry *excel_ce_exception;
 #define TABLE_FROM_OBJECT(table, object) \
 	{ \
 		excel_table_object *obj = Z_EXCEL_TABLE_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "table"); \
 		table = obj->table; \
 		if (!table) { \
 			zend_throw_exception(excel_ce_exception, "The table wasn't initialized", 0); \
@@ -467,6 +526,7 @@ extern zend_class_entry *excel_ce_exception;
 #define TABLE_AND_SHEET_FROM_OBJECT(table, sheet, object) \
 	{ \
 		excel_table_object *obj = Z_EXCEL_TABLE_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "table"); \
 		table = obj->table; \
 		sheet = obj->sheet; \
 		if (!table) { \
@@ -478,6 +538,7 @@ extern zend_class_entry *excel_ce_exception;
 #define TABLE_AND_BOOK_FROM_OBJECT(table, book, object) \
 	{ \
 		excel_table_object *obj = Z_EXCEL_TABLE_OBJ_P(object); \
+		EXCEL_VALIDATE_OWNER(obj, "table"); \
 		table = obj->table; \
 		book = obj->book; \
 		if (!table) { \

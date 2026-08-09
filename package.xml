@@ -19,7 +19,7 @@ Numbers, etc...
     <email>ilia@ilia.ws</email>
     <active>yes</active>
   </lead>
-  <date>2026-05-20</date>
+  <date>2026-08-09</date>
   <version>
     <release>1.4.0</release>
     <api>1.4.0</api>
@@ -38,6 +38,8 @@ Numbers, etc...
    - Table: isAutoFilter(), removeFilter()
    - AutoFilter: sortLevels(), getSort(level)
    - PIE and PECL installation support
+   - Child objects retain their workbook and reject stale LibXL handles
+   - Docker credentials moved to runtime; CI now gates releases on the PHPT matrix
   </notes>
   <contents>
     <dir name="/">
@@ -65,8 +67,12 @@ Numbers, etc...
 	  	<file name="ExcelAutoFilter.php" role="doc" />
 	  	<file name="ExcelFilterColumn.php" role="doc" />
 	  	<file name="ExcelFormControl.php" role="doc" />
+		<file name="ExcelConditionalFormat.php" role="doc" />
+		<file name="ExcelConditionalFormatting.php" role="doc" />
 	  	<file name="ExcelCoreProperties.php" role="doc" />
+		<file name="ExcelRichString.php" role="doc" />
 	  	<file name="ExcelTable.php" role="doc" />
+		<file name="ExcelException.php" role="doc" />
 	  </dir>
 
       <dir name="tests">
@@ -224,6 +230,8 @@ Numbers, etc...
 		<file name="156-table-filter-52.phpt" role="test" />
 		<file name="157-autofilter-sortlevels.phpt" role="test" />
 		<file name="158-book-loadwithoutemptycells-xlsx.phpt" role="test" />
+		<file name="159-crash-fixes.phpt" role="test" />
+		<file name="160-object-lifetime.phpt" role="test" />
 		<file name="dateunpack_overflow_bug.phpt" role="test" />
 		<file name="number_format_bug.phpt" role="test" />
 		<file name="write_read_row_bug.phpt" role="test" />

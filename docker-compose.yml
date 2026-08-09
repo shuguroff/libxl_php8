@@ -8,8 +8,9 @@
 #   docker compose up php84           # test on PHP 8.4
 #   docker compose up php85           # test on PHP 8.5
 #
-# Build with LibXL license:
-#   LIBXL_LICENSE_NAME="First Last" LIBXL_LICENSE_KEY="key" docker compose build
+# Run tests with a LibXL license:
+#   docker compose build php83
+#   LIBXL_LICENSE_NAME="First Last" LIBXL_LICENSE_KEY="key" docker compose up php83
 #
 # IMPORTANT: Before building, download LibXL from https://www.libxl.com/
 # and extract it into the libxl/ directory at the project root.
@@ -22,8 +23,9 @@ services:
       context: .
       args:
         PHP_VERSION: "7.4"
-        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
-        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    environment:
+      LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+      LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
 
   php82:
     platform: linux/amd64
@@ -31,8 +33,9 @@ services:
       context: .
       args:
         PHP_VERSION: "8.2"
-        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
-        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    environment:
+      LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+      LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
 
   php83:
     platform: linux/amd64
@@ -40,8 +43,9 @@ services:
       context: .
       args:
         PHP_VERSION: "8.3"
-        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
-        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    environment:
+      LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+      LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
 
   php84:
     platform: linux/amd64
@@ -49,8 +53,9 @@ services:
       context: .
       args:
         PHP_VERSION: "8.4"
-        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
-        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    environment:
+      LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+      LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
 
   php85:
     platform: linux/amd64
@@ -58,5 +63,6 @@ services:
       context: .
       args:
         PHP_VERSION: "8.5"
-        LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
-        LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}
+    environment:
+      LIBXL_LICENSE_NAME: ${LIBXL_LICENSE_NAME:-}
+      LIBXL_LICENSE_KEY: ${LIBXL_LICENSE_KEY:-}

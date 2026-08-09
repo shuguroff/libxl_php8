@@ -2,6 +2,11 @@
 .env
 libxl/
 
+# Локальные каталоги инструментов
+.claude/
+.clawpatch/
+.serena/
+
 # Артефакты phpize / make
 .libs/
 build/

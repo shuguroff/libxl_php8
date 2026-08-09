@@ -22,6 +22,7 @@ zend_object_handlers excel_object_handlers_coreproperties;
 
 static void excel_coreproperties_object_free_storage(zend_object *object)
 {
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(object);
 }
 
@@ -560,6 +561,7 @@ void excel_coreprops_register(void)
 	memcpy(&excel_object_handlers_coreproperties, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	excel_object_handlers_coreproperties.offset = XtOffsetOf(excel_coreproperties_object, std);
 	excel_object_handlers_coreproperties.free_obj = excel_coreproperties_object_free_storage;
+	excel_object_handlers_coreproperties.get_gc = php_excel_owned_object_get_gc;
 	excel_object_handlers_coreproperties.clone_obj = NULL;
 }
 

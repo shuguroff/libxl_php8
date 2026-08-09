@@ -18,6 +18,7 @@ zend_object_handlers excel_object_handlers_formcontrol;
 
 static void excel_formcontrol_object_free_storage(zend_object *object)
 {
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(object);
 }
 
@@ -1056,6 +1057,7 @@ void excel_formcontrol_register(void)
 	memcpy(&excel_object_handlers_formcontrol, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	excel_object_handlers_formcontrol.offset = XtOffsetOf(excel_formcontrol_object, std);
 	excel_object_handlers_formcontrol.free_obj = excel_formcontrol_object_free_storage;
+	excel_object_handlers_formcontrol.get_gc = php_excel_owned_object_get_gc;
 	excel_object_handlers_formcontrol.clone_obj = NULL;
 
 	/* ObjectType constants */

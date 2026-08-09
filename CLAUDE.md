@@ -20,8 +20,9 @@ docker compose up php83
 # Проверка компиляции (warnings/errors) — смотреть вывод docker compose build
 # Проверка тестов — смотреть вывод docker compose up
 
-# Сборка с лицензией LibXL
-LIBXL_LICENSE_NAME="Name" LIBXL_LICENSE_KEY="key" docker compose build
+# Запуск тестов с лицензией LibXL
+docker compose build php83
+LIBXL_LICENSE_NAME="Name" LIBXL_LICENSE_KEY="key" docker compose up php83
 ```
 
 **Важно:** Не использовать `make clean` локально — удалит `.so` файлы из `libxl/`.

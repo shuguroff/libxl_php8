@@ -106,6 +106,80 @@ zend_object_handlers excel_object_handlers_autofilter;
 zend_object_handlers excel_object_handlers_filtercolumn;
 #endif
 
+static void php_excel_owned_object_gc_data(zend_object *object, zval **table, int *n)
+{
+	excel_owned_object *owned = php_excel_owned_object_fetch_object(object);
+
+	if (Z_ISUNDEF(owned->book_ref)) {
+		*table = NULL;
+		*n = 0;
+	} else {
+		*table = &owned->book_ref;
+		*n = 1;
+	}
+
+}
+
+#if PHP_VERSION_ID < 80000
+PHP_EXCEL_API HashTable *php_excel_owned_object_get_gc(zval *object, zval **table, int *n)
+{
+	php_excel_owned_object_gc_data(Z_OBJ_P(object), table, n);
+	return zend_std_get_properties(object);
+}
+#else
+PHP_EXCEL_API HashTable *php_excel_owned_object_get_gc(zend_object *object, zval **table, int *n)
+{
+	php_excel_owned_object_gc_data(object, table, n);
+	return zend_std_get_properties(object);
+}
+#endif
+
+PHP_EXCEL_API void php_excel_owned_object_dtor(zend_object *object)
+{
+	excel_owned_object *owned = php_excel_owned_object_fetch_object(object);
+
+	if (!Z_ISUNDEF(owned->book_ref)) {
+		zval_ptr_dtor(&owned->book_ref);
+		ZVAL_UNDEF(&owned->book_ref);
+	}
+}
+
+PHP_EXCEL_API void php_excel_owned_object_set_book(zend_object *object, zval *book)
+{
+	excel_owned_object *owned = php_excel_owned_object_fetch_object(object);
+
+	if (!Z_ISUNDEF(owned->book_ref)) {
+		zval_ptr_dtor(&owned->book_ref);
+	}
+
+	ZVAL_COPY(&owned->book_ref, book);
+	owned->generation = php_excel_book_object_fetch_object(Z_OBJ_P(book))->generation;
+}
+
+PHP_EXCEL_API void php_excel_owned_object_copy_book(zend_object *object, zend_object *source)
+{
+	excel_owned_object *owned = php_excel_owned_object_fetch_object(source);
+
+	php_excel_owned_object_set_book(object, &owned->book_ref);
+}
+
+PHP_EXCEL_API zend_bool php_excel_owned_object_is_valid(zend_object *object)
+{
+	excel_owned_object *owned = php_excel_owned_object_fetch_object(object);
+
+	return !Z_ISUNDEF(owned->book_ref)
+		&& owned->generation == php_excel_book_object_fetch_object(Z_OBJ(owned->book_ref))->generation;
+}
+
+PHP_EXCEL_API void php_excel_book_invalidate_children(zval *book)
+{
+	excel_book_object *obj = Z_EXCEL_BOOK_OBJ_P(book);
+
+	if (++obj->generation == 0) {
+		obj->generation = 1;
+	}
+}
+
 static void excel_book_object_free_storage(zend_object *object)
 {
 	excel_book_object *intern = php_excel_book_object_fetch_object(object);
@@ -131,6 +205,7 @@ static zend_object *excel_object_new_book(zend_class_entry *class_type)
 	object_properties_init(&intern->std, class_type);
 
 	intern->book = xlCreateBook();
+	intern->generation = 1;
 	intern->std.handlers = &excel_object_handlers_book;
 
 	return &intern->std;
@@ -139,6 +214,7 @@ static zend_object *excel_object_new_book(zend_class_entry *class_type)
 static void excel_sheet_object_free_storage(zend_object *object)
 {
 	excel_sheet_object *intern = php_excel_sheet_object_fetch_object(object);
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(&intern->std);
 }
 
@@ -163,6 +239,7 @@ static zend_object *excel_object_new_sheet(zend_class_entry *class_type)
 static void excel_font_object_free_storage(zend_object *object)
 {
 	excel_font_object *intern = php_excel_font_object_fetch_object(object);
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(&intern->std);
 }
 
@@ -214,6 +291,11 @@ static zend_object *excel_font_object_clone(zval *this_ptr)
 	excel_font_object *old_obj = Z_EXCEL_FONT_OBJ_P(this_ptr);
 #endif
 	new_ov = excel_object_new_font_ex(old_obj->std.ce, &new_obj);
+	if (!php_excel_owned_object_is_valid(&old_obj->std)) {
+		zend_throw_exception(excel_ce_exception, "The font is no longer valid", 0);
+		return new_ov;
+	}
+	php_excel_owned_object_copy_book(new_ov, &old_obj->std);
 
 	font = xlBookAddFont(old_obj->book, old_obj->font);
 	if (!font) {
@@ -231,6 +313,7 @@ static zend_object *excel_font_object_clone(zval *this_ptr)
 static void excel_format_object_free_storage(zend_object *object)
 {
 	excel_format_object *intern = php_excel_format_object_fetch_object(object);
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(&intern->std);
 }
 
@@ -277,6 +360,11 @@ static zend_object *excel_format_object_clone(zval *this_ptr)
 	excel_format_object *old_obj = Z_EXCEL_FORMAT_OBJ_P(this_ptr);
 #endif
 	new_ov = excel_object_new_format_ex(old_obj->std.ce, &new_obj);
+	if (!php_excel_owned_object_is_valid(&old_obj->std)) {
+		zend_throw_exception(excel_ce_exception, "The format is no longer valid", 0);
+		return new_ov;
+	}
+	php_excel_owned_object_copy_book(new_ov, &old_obj->std);
 
 	format = xlBookAddFormat(old_obj->book, old_obj->format);
 	if (!format) {
@@ -295,6 +383,7 @@ static zend_object *excel_format_object_clone(zval *this_ptr)
 static void excel_autofilter_object_free_storage(zend_object *object)
 {
 	excel_autofilter_object *intern = php_excel_autofilter_object_fetch_object(object);
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(&intern->std);
 }
 
@@ -328,6 +417,7 @@ zend_object *excel_object_new_autofilter(zend_class_entry *class_type)
 static void excel_filtercolumn_object_free_storage(zend_object *object)
 {
 	excel_filtercolumn_object *intern = php_excel_filtercolumn_object_fetch_object(object);
+	php_excel_owned_object_dtor(object);
 	zend_object_std_dtor(&intern->std);
 }
 
@@ -392,6 +482,7 @@ EXCEL_METHOD(Book, load)
 
 	BOOK_FROM_OBJECT(book, object);
 
+	php_excel_book_invalidate_children(object);
 	RETURN_BOOL(xlBookLoadRaw(book, ZSTR_VAL(data_zs), ZSTR_LEN(data_zs)));
 }
 /* }}} */
@@ -434,6 +525,7 @@ EXCEL_METHOD(Book, loadFile)
 		RETURN_THROWS();
 	}
 
+	php_excel_book_invalidate_children(object);
 	RETVAL_BOOL(xlBookLoadRaw(book, ZSTR_VAL(contents), ZSTR_LEN(contents)));
 	zend_string_release(contents);
 }
@@ -510,6 +602,7 @@ EXCEL_METHOD(Book, getSheet)
 	fo = Z_EXCEL_SHEET_OBJ_P(return_value);
 	fo->sheet = sh;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -545,6 +638,7 @@ EXCEL_METHOD(Book, getSheetByName)
 					fo = Z_EXCEL_SHEET_OBJ_P(return_value);
 					fo->sheet = sh;
 					fo->book = book;
+					php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 					return;
 				}
 			}
@@ -573,7 +667,12 @@ EXCEL_METHOD(Book, deleteSheet)
 
 	BOOK_FROM_OBJECT(book, object);
 
-	RETURN_BOOL(xlBookDelSheet(book, sheet));
+	if (!xlBookDelSheet(book, sheet)) {
+		RETURN_FALSE;
+	}
+
+	php_excel_book_invalidate_children(object);
+	RETURN_TRUE;
 }
 /* }}} */
 
@@ -632,6 +731,7 @@ EXCEL_METHOD(Book, addSheet)
 	fo = Z_EXCEL_SHEET_OBJ_P(return_value);
 	fo->sheet = sh;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -672,6 +772,7 @@ EXCEL_METHOD(Book, copySheet)
 	fo = Z_EXCEL_SHEET_OBJ_P(return_value);
 	fo->sheet = sh;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -748,6 +849,7 @@ EXCEL_METHOD(Book, addFont)
 	fo = Z_EXCEL_FONT_OBJ_P(return_value);
 	fo->font = nfont;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -780,6 +882,7 @@ EXCEL_METHOD(Book, addFormat)
 	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
 	fo->format = nformat;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -816,6 +919,7 @@ EXCEL_METHOD(Book, getAllFormats)
 			fo = Z_EXCEL_FORMAT_OBJ_P(&value);
 			fo->format = format;
 			fo->book = book;
+			php_excel_owned_object_set_book(Z_OBJ(value), object);
 
 			add_next_index_zval(return_value, &value);
 		}
@@ -1155,6 +1259,7 @@ EXCEL_METHOD(Book, __construct)
 	if (new_excel) {
 		excel_book_object *obj = (excel_book_object*) Z_EXCEL_BOOK_OBJ_P(object);
 		if ((book = xlCreateXMLBook())) {
+			php_excel_book_invalidate_children(object);
 			xlBookRelease(obj->book);
 			obj->book = book;
 		} else {
@@ -1394,6 +1499,7 @@ EXCEL_METHOD(Book, loadInfo)
 
 	BOOK_FROM_OBJECT(book, object);
 
+	php_excel_book_invalidate_children(object);
 	RETURN_BOOL(xlBookLoadInfo(book, ZSTR_VAL(filename_zs)));
 }
 /* }}} */
@@ -1484,6 +1590,7 @@ EXCEL_METHOD(Book, addFormatFromStyle)
 	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
 	fo->format = nformat;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 #endif
@@ -1504,6 +1611,7 @@ EXCEL_METHOD(Book, loadWithoutEmptyCells)
 
 	BOOK_FROM_OBJECT(book, object);
 
+	php_excel_book_invalidate_children(object);
 	RETURN_BOOL(xlBookLoadWithoutEmptyCells(book, ZSTR_VAL(filename_zs)));
 }
 /* }}} */
@@ -1533,6 +1641,7 @@ EXCEL_METHOD(Book, addRichString)
 	rso = Z_EXCEL_RICHSTRING_OBJ_P(return_value);
 	rso->richstring = rs;
 	rso->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -1595,6 +1704,7 @@ EXCEL_METHOD(Book, addConditionalFormat)
 	excel_condformat_object *cfo = Z_EXCEL_CONDFORMAT_OBJ_P(return_value);
 	cfo->condformat = cf;
 	cfo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 #endif
@@ -1691,6 +1801,7 @@ EXCEL_METHOD(Book, coreProperties)
 	excel_coreproperties_object *cpo = Z_EXCEL_COREPROPERTIES_OBJ_P(return_value);
 	cpo->coreproperties = cp;
 	cpo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -1747,6 +1858,7 @@ EXCEL_METHOD(Book, loadInfoRaw)
 
 	BOOK_FROM_OBJECT(book, object);
 
+	php_excel_book_invalidate_children(object);
 	RETURN_BOOL(xlBookLoadInfoRaw(book, ZSTR_VAL(data_zs), ZSTR_LEN(data_zs)));
 }
 /* }}} */
@@ -1792,6 +1904,7 @@ EXCEL_METHOD(Book, conditionalFormat)
 	excel_condformat_object *cfo = Z_EXCEL_CONDFORMAT_OBJ_P(return_value);
 	cfo->condformat = cf;
 	cfo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -1823,6 +1936,7 @@ EXCEL_METHOD(Book, clear)
 	}
 
 	BOOK_FROM_OBJECT(book, object);
+	php_excel_book_invalidate_children(object);
 	xlBookClear(book);
 }
 /* }}} */
@@ -2032,6 +2146,7 @@ EXCEL_METHOD(Format, __construct)
 
 	obj->format = format;
 	obj->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(object), zbook);
 }
 /* }}} */
 
@@ -2063,6 +2178,7 @@ EXCEL_METHOD(Font, __construct)
 
 	obj->font = font;
 	obj->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(object), zbook);
 }
 /* }}} */
 
@@ -2120,6 +2236,7 @@ EXCEL_METHOD(Format, getFont)
 	fo = Z_EXCEL_FONT_OBJ_P(return_value);
 	fo->font = font;
 	fo->book = obj->book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -2423,6 +2540,7 @@ EXCEL_METHOD(Sheet, __construct)
 
 	obj->sheet = sh;
 	obj->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(object), zbook);
 }
 /* }}} */
 
@@ -2470,6 +2588,7 @@ EXCEL_METHOD(Sheet, cellFormat)
 	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
 	fo->format = format;
 	fo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -2717,6 +2836,7 @@ EXCEL_METHOD(Sheet, read)
 		fo = Z_EXCEL_FORMAT_OBJ_P(oformat);
 		fo->format = format;
 		fo->book = book;
+		php_excel_owned_object_copy_book(Z_OBJ_P(oformat), Z_OBJ_P(object));
 	}
 }
 /* }}} */
@@ -3308,6 +3428,7 @@ EXCEL_METHOD(Sheet, readRichStr)
 	rso = Z_EXCEL_RICHSTRING_OBJ_P(return_value);
 	rso->richstring = rs;
 	rso->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -3595,6 +3716,7 @@ EXCEL_METHOD(Sheet, colFormat)
 	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
 	fo->format = format;
 	fo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -3623,6 +3745,7 @@ EXCEL_METHOD(Sheet, rowFormat)
 	fo = Z_EXCEL_FORMAT_OBJ_P(return_value);
 	fo->format = format;
 	fo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 #endif
@@ -3680,6 +3803,7 @@ EXCEL_METHOD(Sheet, addTable)
 	tobj->table = th;
 	tobj->sheet = sheet;
 	tobj->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -3708,6 +3832,7 @@ EXCEL_METHOD(Sheet, getTableByName)
 	tobj->table = th;
 	tobj->sheet = sheet;
 	tobj->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -3736,6 +3861,7 @@ EXCEL_METHOD(Sheet, getTableByIndex)
 	tobj->table = th;
 	tobj->sheet = sheet;
 	tobj->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -3812,6 +3938,7 @@ EXCEL_METHOD(Sheet, conditionalFormatting)
 	cfo->condformatting = cfh;
 	cfo->sheet = sheet;
 	cfo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -4234,6 +4361,7 @@ EXCEL_METHOD(Sheet, formControl)
 	obj->formcontrol = fch;
 	obj->sheet = sheet;
 	obj->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 #endif
@@ -4264,6 +4392,7 @@ EXCEL_METHOD(Sheet, addConditionalFormatting)
 	cfo->condformatting = cfh;
 	cfo->sheet = sheet;
 	cfo->book = book;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -5361,6 +5490,7 @@ EXCEL_METHOD(Book, insertSheet)
 	fo = Z_EXCEL_SHEET_OBJ_P(return_value);
 	fo->sheet = sh;
 	fo->book = book;
+	php_excel_owned_object_set_book(Z_OBJ_P(return_value), object);
 }
 /* }}} */
 
@@ -6157,6 +6287,7 @@ EXCEL_METHOD(Sheet, autoFilter)
 	obj = Z_EXCEL_AUTOFILTER_OBJ_P(return_value);
 	obj->autofilter = ah;
 	obj->sheet = sheet;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -6321,6 +6452,7 @@ EXCEL_METHOD(AutoFilter, __construct)
 
 	obj->sheet = sheet;
 	obj->autofilter = afh;
+	php_excel_owned_object_copy_book(Z_OBJ_P(object), Z_OBJ_P(zsheet));
 }
 /* }}} */
 
@@ -6386,6 +6518,7 @@ EXCEL_METHOD(AutoFilter, column)
 	obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(return_value);
 	obj->autofilter = autofilter;
 	obj->filtercolumn = fch;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -6423,6 +6556,7 @@ EXCEL_METHOD(AutoFilter, columnByIndex)
 	obj = Z_EXCEL_FILTERCOLUMN_OBJ_P(return_value);
 	obj->autofilter = autofilter;
 	obj->filtercolumn = fch;
+	php_excel_owned_object_copy_book(Z_OBJ_P(return_value), Z_OBJ_P(object));
 }
 /* }}} */
 
@@ -6580,6 +6714,7 @@ EXCEL_METHOD(FilterColumn, __construct)
 
 	obj->filtercolumn = fch;
 	obj->autofilter = autofilter;
+	php_excel_owned_object_copy_book(Z_OBJ_P(object), Z_OBJ_P(zautofilter));
 }
 /* }}} */
 
@@ -8756,9 +8891,14 @@ PHP_MINIT_FUNCTION(excel)
 	REGISTER_EXCEL_CLASS(Sheet,			sheet,			NULL);
 	REGISTER_EXCEL_CLASS(Format,		format,			excel_format_object_clone);
 	REGISTER_EXCEL_CLASS(Font,			font,			excel_font_object_clone);
+	excel_object_handlers_sheet.get_gc = php_excel_owned_object_get_gc;
+	excel_object_handlers_format.get_gc = php_excel_owned_object_get_gc;
+	excel_object_handlers_font.get_gc = php_excel_owned_object_get_gc;
 #if LIBXL_VERSION >= 0x03070000
 	REGISTER_EXCEL_CLASS(AutoFilter,	autofilter,		NULL);
 	REGISTER_EXCEL_CLASS(FilterColumn,	filtercolumn,	NULL);
+	excel_object_handlers_autofilter.get_gc = php_excel_owned_object_get_gc;
+	excel_object_handlers_filtercolumn.get_gc = php_excel_owned_object_get_gc;
 #endif
 
 	{
